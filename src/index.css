@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-base: #000000;
+    --bg-secondary: #0A0A0A;
+    --surface: #111111;
+    --cards: #1D1D1F;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A1A1A6;
+    --border: rgba(255, 255, 255, 0.08);
+    --apple-curve: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * {
+    cursor: default;
+  }
+
+  body {
+    @apply bg-black text-white antialiased selection:bg-white/20;
+    overflow-x: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  canvas {
+    display: block;
+    max-width: 100vw;
+    max-height: 100vh;
+    object-fit: contain;
+  }
+}
+
+@layer utilities {
+  .backdrop-blur-20 {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .text-mask-reveal {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  }
+}
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
