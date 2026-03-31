@@ -138,7 +138,7 @@ export default function HomeSection({ section, content, onNavigate }) {
       pos: 'top-12 left-6 md:top-32 md:left-24',
       delay: 0.6,
       link: projects[0]?.live,
-      previewImg: "/images/portrait.png"
+      previewImg: projects[0]?.preview?.url || "/images/portrait.png"
     },
     {
       id: 'location',

@@ -13,7 +13,7 @@ export default function BrandIdentity({ profile, onNavigate }) {
       <div className="relative h-10 w-10 flex-shrink-0">
          <div className="absolute inset-0 rounded-full bg-[#27c93f]/20 blur-md group-hover:bg-[#27c93f]/40 transition-colors" />
          <img 
-            src="/images/portrait.png" 
+            src={profile?.portrait?.url || "/images/portrait.png"} 
             alt={profile?.name || "Kushal Sai Aleti"} 
             className="relative h-full w-full rounded-full object-cover border border-white/20 grayscale group-hover:grayscale-0 transition-all duration-500"
          />
