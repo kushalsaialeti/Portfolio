@@ -12,14 +12,20 @@
     --apple-curve: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  * {
-    cursor: default;
-  }
-
   body {
     @apply bg-black text-white antialiased selection:bg-white/20;
     overflow-x: hidden;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    cursor: default;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    cursor: pointer;
   }
 
   canvas {
@@ -32,8 +38,8 @@
 
 @layer utilities {
   .backdrop-blur-20 {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 
   .text-mask-reveal {
