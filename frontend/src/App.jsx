@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Lenis from '@studio-freight/lenis';
 import * as StaticContent from './constants/siteContent'; 
 import HomeSection from './sections/HomeSection';
@@ -12,10 +12,20 @@ import ContactSection from './sections/ContactSection';
 import LeftControlPanel from './components/LeftControlPanel';
 import BrandIdentity from './components/BrandIdentity';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './admin/AdminLogin';
 import SiteFooter from './components/SiteFooter';
+import ThemeToggle from './components/ThemeToggle';
 import { CmsProvider, CmsContext } from './context/CmsContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useContext(CmsContext);
+  if (isAuthenticated === undefined) return null; // Wait for hydration
+  return isAuthenticated ? children : <Navigate to="/admin-login" replace />;
+};
 
 function LandingPage({ isLoaded }) {
     const { sections, fetchSection } = React.useContext(CmsContext);
@@ -32,12 +42,13 @@ function LandingPage({ isLoaded }) {
         siteSections: sections.layout?.siteSections || StaticContent.SITE_SECTIONS,
         blogs: sections.extra?.blogs || StaticContent.BLOGS,
         aboutLines: sections.about?.aboutLines || StaticContent.ABOUT_LINES,
+        gallery: sections.home?.gallery || [],
         skills: sections.skills?.skills || StaticContent.SKILLS,
         projects: sections.projects?.projects || StaticContent.PROJECTS,
         activities: sections.extra?.activities || StaticContent.ACTIVITIES
     };
 
-    // SMOOTH SCROLL ENGINE (Lenis - PRESERVED UNTOUCHED)
+    // SMOOTH SCROLL ENGINE (Lenis)
     useEffect(() => {
         const lenis = new Lenis({
             duration: 1.4,
@@ -54,7 +65,7 @@ function LandingPage({ isLoaded }) {
         return () => lenis.destroy();
     }, []);
 
-    // INTERSECTION OBSERVER (PRESERVED UNTOUCHED)
+    // INTERSECTION OBSERVER
     useEffect(() => {
         const observerOptions = {
             root: null,
@@ -95,14 +106,12 @@ function LandingPage({ isLoaded }) {
     };
 
     return (
-        <main className="relative bg-black text-white selection:bg-[#27c93f]/20 font-inter antialiased overflow-x-hidden">
-            {/* PERSISTENT BRAND IDENTITY */}
+        <main className="relative bg-[var(--bg-base)] text-[var(--text-primary)] selection:bg-[var(--accent)]/20 font-inter antialiased overflow-x-hidden">
             <BrandIdentity 
                 profile={cmsData?.siteProfile} 
                 onNavigate={navigateToSection} 
             />
 
-            {/* GLOBAL HEADER DOCK */}
             <LeftControlPanel
                 show={isLoaded}
                 items={cmsData?.siteSections}
@@ -110,7 +119,6 @@ function LandingPage({ isLoaded }) {
                 setActiveId={navigateToSection}
             />
 
-            {/* SEAMLESS VERTICAL STACKED LANDING PAGE */}
             <div className="flex flex-col w-full">
                 {cmsData.siteSections?.map((sectionMeta) => {
                     const SectionComponent = sectionMap[sectionMeta?.id];
@@ -128,15 +136,10 @@ function LandingPage({ isLoaded }) {
                 })}
             </div>
 
-            {/* HIGH-FIDELITY FOOTER */}
-            <SiteFooter 
-                profile={cmsData?.siteProfile} 
-                sections={cmsData?.siteSections}
-                onNavigate={navigateToSection}
-            />
 
-            {/* AMBIENT OVERLAY */}
-            <div className="fixed inset-0 bg-[#27c93f]/[0.02] pointer-events-none -z-10" />
+            <ThemeToggle />
+
+            <div className="fixed inset-0 bg-[var(--accent)]/[0.01] pointer-events-none -z-10" />
         </main>
     );
 }
@@ -150,15 +153,25 @@ function App() {
     }, []);
 
     return (
-        <CmsProvider>
-            <Router>
-                <Routes>
-                    <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
-                </Routes>
-            </Router>
-        </CmsProvider>
-    );
+        <ThemeProvider>
+            <CmsProvider>
+                <Router>
+                    <Routes>
+                        <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
+                        <Route path="/admin-login" element={<AdminLogin />} />
+                        <Route 
+                        path="/admin/*" 
+                        element={
+                            <ProtectedRoute>
+                            <AdminDashboard />
+                            </ProtectedRoute>
+                        } 
+                        />
+                    </Routes>
+                </Router>
+            </CmsProvider>
+        </ThemeProvider>
+  );
 }
 
 export default App;

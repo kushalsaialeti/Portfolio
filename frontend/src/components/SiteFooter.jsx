@@ -6,9 +6,9 @@ export default function SiteFooter({ profile, onNavigate, sections }) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative mt-32 border-t border-white/5 bg-black overflow-hidden pt-24 pb-16">
+    <footer className="relative mt-32 border-t border-[var(--border)] bg-[var(--bg-base)] overflow-hidden pt-24 pb-16">
       {/* AMBIENT GLOW */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#27c93f]/[0.03] blur-[150px] -z-10 rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[var(--accent)]/[0.03] blur-[150px] -z-10 rounded-full" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 mb-24">

@@ -16,10 +16,11 @@ import AboutEditor from '../admin/AboutEditor';
 import SkillsEditor from '../admin/SkillsEditor';
 import ProjectsEditor from '../admin/ProjectsEditor';
 import ExtraEditor from '../admin/ExtraEditor';
+import InquiryManager from '../admin/InquiryManager';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
-    const { loading, injectBaseline } = useContext(CmsContext);
+    const { loading, injectBaseline, logout } = useContext(CmsContext);
     const [activeTab, setActiveTab] = useState('profile');
 
     const handleSeed = () => {
@@ -42,7 +43,8 @@ export default function AdminDashboard() {
         { id: 'content', icon: FileEdit, label: 'Narrative' },
         { id: 'stack', icon: Code2, label: 'Stack' },
         { id: 'work', icon: Database, label: 'Portfolio' },
-        { id: 'extra', icon: BookOpen, label: 'Insights' }
+        { id: 'extra', icon: BookOpen, label: 'Insights' },
+        { id: 'signals', icon: Zap, label: 'Signals' }
     ];
 
     if (loading) return (
@@ -79,7 +81,10 @@ export default function AdminDashboard() {
                         </button>
 
                         <button 
-                            onClick={() => navigate('/')}
+                            onClick={async () => {
+                                await logout();
+                                navigate('/');
+                            }}
                             className="flex items-center gap-3 px-8 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all text-white/60 hover:text-white"
                         >
                             <LogOut className="w-4 h-4" /> Exit Console
@@ -123,6 +128,7 @@ export default function AdminDashboard() {
                             {activeTab === 'stack' && <SkillsEditor />}
                             {activeTab === 'work' && <ProjectsEditor />}
                             {activeTab === 'extra' && <ExtraEditor />}
+                            {activeTab === 'signals' && <InquiryManager />}
                         </motion.div>
                     </AnimatePresence>
                 </div>

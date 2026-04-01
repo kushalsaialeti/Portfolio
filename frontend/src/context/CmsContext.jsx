@@ -8,6 +8,39 @@ const API_ROOT = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const CmsProvider = ({ children }) => {
   const [sections, setSections] = useState({});
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem('admin_token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('admin_token'));
+
+  // 0. Global Auth Setup & Axios Interceptor
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      localStorage.setItem('admin_token', token);
+      setIsAuthenticated(true);
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+      localStorage.removeItem('admin_token');
+      setIsAuthenticated(false);
+    }
+  }, [token]);
+
+  // Auth Error Handler (Auto-Logout on 401/403)
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          setToken(null);
+          // Only redirect if we were on an admin page
+          if (window.location.pathname.startsWith('/admin')) {
+             window.location.href = '/admin-login';
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axios.interceptors.response.eject(interceptor);
+  }, []);
 
   // 1. Fetch Section by Slug
   const fetchSection = async (slug) => {
@@ -25,7 +58,6 @@ export const CmsProvider = ({ children }) => {
   // 1.5 Hydration effect to signal end of loading
   useEffect(() => {
     const init = async () => {
-      // Just a brief heartbeat to ensure context is alive
       setLoading(false);
     };
     init();
@@ -77,17 +109,38 @@ export const CmsProvider = ({ children }) => {
     }
   };
 
-  // 5. Inject Baseline Static Data (Migration Utility)
-  const injectBaseline = async (staticData) => {
+  // 5. Auth Actions (OTP Flow)
+  const requestOtp = async (email) => {
     try {
-      const promises = Object.entries(staticData).map(([slug, content]) => 
-        updateSection(slug, content)
-      );
-      await Promise.all(promises);
-      alert('Legacy data migration successful. All sections are now dynamic.');
+      const response = await axios.post(`${API_ROOT}/auth/request-otp`, { email });
+      return response.data;
     } catch (error) {
-      console.error('Error injecting baseline:', error);
-      alert('Migration failed.');
+      console.error('OTP Request Error:', error);
+      throw error;
+    }
+  };
+
+  const verifyOtp = async (email, otp) => {
+    try {
+      const response = await axios.post(`${API_ROOT}/auth/verify-otp`, { email, otp });
+      setToken(response.data.token);
+      return response.data;
+    } catch (error) {
+      console.error('OTP Verification Error:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      if (token) {
+        await axios.post(`${API_ROOT}/auth/logout`);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setToken(null);
+      localStorage.removeItem('admin_token');
     }
   };
 
@@ -95,11 +148,14 @@ export const CmsProvider = ({ children }) => {
     <CmsContext.Provider value={{ 
       sections, 
       loading, 
+      isAuthenticated,
       fetchSection, 
       updateSection, 
       uploadMedia, 
       replaceMedia,
-      injectBaseline
+      requestOtp,
+      verifyOtp,
+      logout
     }}>
       {children}
     </CmsContext.Provider>

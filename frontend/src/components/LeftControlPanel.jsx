@@ -18,15 +18,15 @@ const ControlItem = ({ item, isSelected, isExpanded, onClick, onHoverStart, onHo
         whileTap={{ scale: 0.98 }}
         className={`group inline-flex w-auto items-center gap-3 rounded-full border px-5 py-3 text-left text-[11px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${
           isSelected
-            ? 'border-white/30 bg-white/[0.16] text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]'
-            : 'border-white/10 bg-white/[0.04] text-[#dbdbe1] hover:border-white/25 hover:bg-white/[0.1]'
+            ? 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] shadow-[var(--shadow-md)]'
+            : 'border-[var(--border)] bg-[var(--bg-secondary)]/40 text-[var(--text-secondary)] hover:border-[var(--text-secondary)]/30 hover:bg-[var(--surface)]'
         }`}
       >
         <span
           className={`h-4 w-4 rounded-full border transition-all duration-500 ${
             isSelected
-              ? 'border-white/60 bg-[#27c93f] shadow-[0_0_12px_#27c93f]'
-              : 'border-white/20 bg-white/[0.04] group-hover:border-[#27c93f]/40'
+              ? 'border-[var(--text-primary)]/20 bg-[var(--accent)] shadow-[0_0_12px_var(--accent)]'
+              : 'border-[var(--border)] bg-[var(--bg-secondary)] group-hover:border-[var(--accent)]/40'
           }`}
         />
         <span className="leading-none">{item.navLabel}</span>
@@ -43,16 +43,16 @@ const ControlItem = ({ item, isSelected, isExpanded, onClick, onHoverStart, onHo
             onClick={(event) => onClick(item.id, event)}
             className="absolute top-full left-1/2 -translate-x-1/2 z-[200] cursor-pointer"
           >
-            <div className="w-[260px] rounded-[24px] border border-white/15 bg-[#0a0a0a]/90 px-6 py-5 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] group/card hover:border-[#27c93f]/30 transition-all">
+            <div className="w-[260px] rounded-[24px] border border-[var(--border)] bg-[var(--glass-bg)] px-6 py-5 backdrop-blur-2xl shadow-[var(--shadow-lg)] group/card hover:border-[var(--accent)]/30 transition-all">
               <div className="flex justify-between items-start mb-2">
-                <p className="text-[9px] uppercase tracking-[0.3em] font-black text-[#27c93f] opacity-80">{item.eyebrow}</p>
-                <div className="w-2 h-2 rounded-full bg-[#27c93f] animate-pulse" />
+                <p className="text-[9px] uppercase tracking-[0.3em] font-black text-[var(--accent)] opacity-80">{item.eyebrow}</p>
+                <div className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
               </div>
-              <h3 className="text-base font-black text-white uppercase tracking-tight group-hover/card:text-[#27c93f] transition-colors">{item.title}</h3>
-              <p className="mt-2 text-xs leading-relaxed text-[#9ca0ab] font-medium">{item.panelInfo}</p>
-              <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Click to Explore</span>
-                <MoreHorizontal className="w-4 h-4 text-white/20 group-hover/card:text-white transition-colors" />
+              <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tight group-hover/card:text-[var(--accent)] transition-colors">{item.title}</h3>
+              <p className="mt-2 text-xs leading-relaxed text-[var(--text-secondary)] font-medium">{item.panelInfo}</p>
+              <div className="mt-4 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+                <span className="text-[8px] font-black uppercase tracking-widest text-[var(--text-secondary)]/30">Click to Explore</span>
+                <MoreHorizontal className="w-4 h-4 text-[var(--text-secondary)]/30 group-hover/card:text-[var(--text-primary)] transition-colors" />
               </div>
             </div>
           </motion.div>
@@ -82,7 +82,7 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
       <div
         className="fixed top-8 left-1/2 -translate-x-1/2 z-[150] hidden lg:block"
       >
-        <div className="flex flex-row items-center gap-3 p-1.5 rounded-full bg-white/[0.03] border border-white/5 backdrop-blur-3xl shadow-2xl">
+        <div className="flex flex-row items-center gap-3 p-1.5 rounded-full bg-[var(--glass-bg)] border border-[var(--border)] backdrop-blur-3xl shadow-[var(--shadow-lg)]">
           {navItems.map((item) => (
             <ControlItem
               key={item.id}
@@ -104,7 +104,7 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
           aria-label="Open navigation"
           whileTap={{ scale: 0.9 }}
           onClick={() => setMobileOpen((prev) => !prev)}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-xl"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--glass-bg)] text-[var(--text-primary)] backdrop-blur-xl shadow-[var(--shadow-md)]"
         >
           <MoreHorizontal className="h-5 w-5" />
         </motion.button>
@@ -115,7 +115,7 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
               initial={{ opacity: 0, scale: 0.9, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              className="mt-4 flex min-w-[240px] flex-col gap-2 rounded-[32px] border border-white/10 bg-[#0a0a0a]/95 p-4 backdrop-blur-2xl shadow-3xl"
+              className="mt-4 flex min-w-[240px] flex-col gap-2 rounded-[32px] border border-[var(--border)] bg-[var(--glass-bg)] p-4 backdrop-blur-2xl shadow-[var(--shadow-lg)]"
             >
               {navItems.map((item) => (
                 <ControlItem
