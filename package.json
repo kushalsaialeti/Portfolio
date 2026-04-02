@@ -3,6 +3,7 @@
     "start": "cd backend && npm install && npm start"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "cloudinary": "^1.41.0"
   }
 }
