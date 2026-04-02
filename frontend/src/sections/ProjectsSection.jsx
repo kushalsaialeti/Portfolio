@@ -20,9 +20,9 @@ function ProjectCard({ project }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
-      className="relative group rounded-[32px] overflow-hidden border border-[var(--border)] bg-[var(--cards)] backdrop-blur-3xl transition-all duration-500 cursor-none h-fit shadow-[var(--shadow-md)]"
+      className="relative group rounded-[24px] md:rounded-[32px] overflow-hidden border border-[var(--border)] bg-[var(--cards)] backdrop-blur-3xl transition-all duration-500 cursor-none h-fit shadow-[var(--shadow-md)]"
     >
-      <a href={project.live} target="_blank" rel="noreferrer" className="block p-4">
+      <a href={project.live} target="_blank" rel="noreferrer" className="block p-3 md:p-4">
         {/* MEDIA CONTAINER */}
         <div className="relative aspect-[16/10] rounded-[24px] overflow-hidden bg-[var(--bg-secondary)]/40 border border-[var(--border)]">
            {project.preview?.url ? (
@@ -41,9 +41,9 @@ function ProjectCard({ project }) {
         </div>
 
         {/* BOTTOM CONTENT */}
-        <div className="mt-8 px-4 pb-4 space-y-4">
+        <div className="mt-4 md:mt-8 px-2 md:px-4 pb-3 md:pb-4 space-y-3 md:space-y-4">
            <div className="flex items-center justify-between">
-              <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)] transition-colors">
+              <h3 className="text-lg md:text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)] transition-colors">
                 {project.name}
               </h3>
               <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] opacity-40 group-hover:opacity-100 animate-pulse" />
@@ -58,15 +58,15 @@ function ProjectCard({ project }) {
                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                  className="overflow-hidden"
                >
-                 <div className="pt-2 flex flex-wrap gap-2">
-                   {project.stack?.map((tech) => (
-                     <span key={tech} className="px-4 py-2 rounded-full border border-[var(--border)] bg-[var(--bg-secondary)] text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
-                       {tech}
-                     </span>
-                   ))}
+                 <div className="pt-2 flex flex-wrap gap-1.5 md:gap-2">
+                    {project.stack?.map((tech) => (
+                      <span key={tech} className="px-2 md:px-4 py-1 md:py-2 rounded-full border border-[var(--border)] bg-[var(--bg-secondary)] text-[8px] md:text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
+                        {tech}
+                      </span>
+                    ))}
                  </div>
-                 <p className="mt-6 text-sm text-[var(--text-secondary)] font-medium leading-relaxed max-w-xl">
-                   {project.description}
+                 <p className="mt-3 md:mt-6 text-[11px] md:text-sm text-[var(--text-secondary)] font-medium leading-relaxed max-w-xl">
+                    {project.description}
                  </p>
                </motion.div>
              )}
@@ -96,7 +96,7 @@ export default function ProjectsSection({ section, content }) {
   const projects = content?.projects || [];
   return (
     <SectionShell id={section?.id} eyebrow={section?.eyebrow} title={section?.title} panelInfo={section?.panelInfo}>
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-10 mt-16 px-2 md:px-0 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 mt-10 md:mt-16 px-2 md:px-0 items-start">
         {projects.map((project, idx) => (
           <ProjectCard key={idx} project={project} />
         ))}

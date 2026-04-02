@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Save, RefreshCw, LayoutPanelTop, FileEdit, 
     Database, Share2, Plus, Trash2, Code2, BookOpen, User, 
-    Zap, ListCheck, Layers, Terminal, Server, LogOut
+    Zap, ListCheck, Layers, Terminal, Server, LogOut, Sun, Moon, Briefcase
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CmsContext } from '../context/CmsContext';
+import { useTheme } from '../context/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 import * as StaticContent from '../constants/siteContent';
 
 // Import Section Editors
@@ -15,12 +17,14 @@ import LayoutEditor from '../admin/LayoutEditor';
 import AboutEditor from '../admin/AboutEditor';
 import SkillsEditor from '../admin/SkillsEditor';
 import ProjectsEditor from '../admin/ProjectsEditor';
+import ExperienceEditor from '../admin/ExperienceEditor';
 import ExtraEditor from '../admin/ExtraEditor';
 import InquiryManager from '../admin/InquiryManager';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
     const { loading, injectBaseline, logout } = useContext(CmsContext);
+    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState('profile');
 
     const handleSeed = () => {
@@ -31,6 +35,7 @@ export default function AdminDashboard() {
                 about: { aboutLines: StaticContent.ABOUT_LINES },
                 skills: { skills: StaticContent.SKILLS },
                 projects: { projects: StaticContent.PROJECTS },
+                experience: { experiences: StaticContent.EXPERIENCES },
                 extra: { blogs: StaticContent.BLOGS, activities: StaticContent.ACTIVITIES }
             };
             injectBaseline(staticData);
@@ -43,30 +48,31 @@ export default function AdminDashboard() {
         { id: 'content', icon: FileEdit, label: 'Narrative' },
         { id: 'stack', icon: Code2, label: 'Stack' },
         { id: 'work', icon: Database, label: 'Portfolio' },
+        { id: 'journey', icon: Briefcase, label: 'Journey' },
         { id: 'extra', icon: BookOpen, label: 'Insights' },
         { id: 'signals', icon: Zap, label: 'Signals' }
     ];
 
     if (loading) return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-8">
-            <RefreshCw className="w-12 h-12 text-[#27c93f] animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-[0.8em] text-white/40">Synchronizing Distributed Cache</p>
+        <div className="min-h-screen bg-[var(--bg-base)] flex flex-col items-center justify-center gap-8">
+            <RefreshCw className="w-12 h-12 text-[var(--accent)] animate-spin" />
+            <p className="text-[10px] font-black uppercase tracking-[0.8em] text-[var(--text-secondary)]/40">Synchronizing Distributed Cache</p>
         </div>
     );
 
     return (
-        <main className="min-h-screen bg-[#050505] text-white selection:bg-[#27c93f]/20 font-inter antialiased">
+        <main className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] selection:bg-[var(--accent)]/20 font-inter antialiased transition-colors duration-500">
             {/* PERSISTENT SYSTEM HEADER */}
-            <header className="sticky top-0 z-[100] bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 px-6 md:px-16 py-8">
+            <header className="sticky top-0 z-[100] bg-[var(--bg-base)]/80 backdrop-blur-2xl border-b border-[var(--border)] px-6 md:px-16 py-8">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-6">
-                        <div className="p-4 bg-[#27c93f] text-black rounded-3xl shadow-[0_0_40px_rgba(39,201,63,0.3)]">
+                        <div className="p-4 bg-[var(--accent)] text-black rounded-3xl shadow-[0_0_40px_rgba(39,201,63,0.3)]">
                             <Terminal className="w-6 h-6 font-bold" />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                               <p className="text-[10px] font-black uppercase tracking-[0.6em] text-[#27c93f]">ADMIN CORE V2.0</p>
-                               <div className="w-1.5 h-1.5 rounded-full bg-[#27c93f] animate-pulse" />
+                               <p className="text-[10px] font-black uppercase tracking-[0.6em] text-[var(--accent)]">ADMIN CORE V2.0</p>
+                               <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                             </div>
                             <h1 className="text-2xl font-black uppercase tracking-tight">System Architect Console</h1>
                         </div>
@@ -75,9 +81,9 @@ export default function AdminDashboard() {
                     <div className="flex gap-4">
                         <button 
                             onClick={handleSeed}
-                            className="flex items-center gap-3 px-8 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all text-white/60 hover:text-white"
+                            className="flex items-center gap-3 px-8 py-3 rounded-full border border-[var(--border)] text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[var(--surface)] transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                         >
-                            <Database className="w-4 h-4 text-[#27c93f]" /> Sync Baseline
+                            <Database className="w-4 h-4 text-[var(--accent)]" /> Sync Baseline
                         </button>
 
                         <button 
@@ -85,10 +91,14 @@ export default function AdminDashboard() {
                                 await logout();
                                 navigate('/');
                             }}
-                            className="flex items-center gap-3 px-8 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all text-white/60 hover:text-white"
+                            className="flex items-center gap-3 px-8 py-3 rounded-full border border-[var(--border)] text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[var(--surface)] transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                         >
                             <LogOut className="w-4 h-4" /> Exit Console
                         </button>
+
+                        <div className="h-10 w-[1px] bg-[var(--border)]" />
+                        
+                        <ThemeToggle />
                     </div>
                 </div>
             </header>
@@ -102,8 +112,8 @@ export default function AdminDashboard() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-4 px-6 py-5 rounded-2xl border transition-all duration-300 text-left cursor-pointer group ${activeTab === tab.id 
-                                    ? 'bg-[#27c93f]/10 border-[#27c93f]/30 text-[#27c93f]' 
-                                    : 'bg-white/[0.02] border-white/5 text-white/40 hover:border-white/20 hover:text-white'}`}
+                                    ? 'bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)]' 
+                                    : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-primary)]/20 hover:text-[var(--text-primary)]'}`}
                             >
                                 <tab.icon className={`w-5 h-5 group-hover:scale-110 transition-transform ${activeTab === tab.id ? 'scale-110' : ''}`} />
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">{tab.label}</span>
@@ -127,6 +137,7 @@ export default function AdminDashboard() {
                             {activeTab === 'content' && <AboutEditor />}
                             {activeTab === 'stack' && <SkillsEditor />}
                             {activeTab === 'work' && <ProjectsEditor />}
+                            {activeTab === 'journey' && <ExperienceEditor />}
                             {activeTab === 'extra' && <ExtraEditor />}
                             {activeTab === 'signals' && <InquiryManager />}
                         </motion.div>

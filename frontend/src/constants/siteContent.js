@@ -17,6 +17,7 @@ export const SITE_SECTIONS = [
     title: '',
     eyebrow: 'Welcome',
     panelInfo: '',
+    isVisible: true,
   },
   {
     id: 'about',
@@ -24,6 +25,7 @@ export const SITE_SECTIONS = [
     title: 'About',
     eyebrow: 'Who I Am',
     panelInfo: 'My background, mindset and product approach.',
+    isVisible: true,
   },
   {
     id: 'skills',
@@ -31,6 +33,7 @@ export const SITE_SECTIONS = [
     title: 'Skills',
     eyebrow: 'Stack',
     panelInfo: 'Frontend, backend and tools I work with.',
+    isVisible: true,
   },
   {
     id: 'projects',
@@ -38,6 +41,7 @@ export const SITE_SECTIONS = [
     title: 'Projects',
     eyebrow: 'Work',
     panelInfo: 'Selected projects with stack and live links.',
+    isVisible: true,
   },
   {
     id: 'activities',
@@ -45,6 +49,7 @@ export const SITE_SECTIONS = [
     title: 'Activities',
     eyebrow: 'Community',
     panelInfo: 'Leadership, volunteer and campus activities.',
+    isVisible: true,
   },
   {
     id: 'blogs',
@@ -52,6 +57,15 @@ export const SITE_SECTIONS = [
     title: 'Blogs',
     eyebrow: 'Insights',
     panelInfo: 'Technical articles, research notes and development logs.',
+    isVisible: true,
+  },
+  {
+    id: 'experience',
+    navLabel: 'Experience',
+    title: 'Professional Journey',
+    eyebrow: 'Career',
+    panelInfo: 'My work history, internships and professional growth.',
+    isVisible: true,
   },
   {
     id: 'contact',
@@ -59,6 +73,7 @@ export const SITE_SECTIONS = [
     title: 'Contact',
     eyebrow: 'Reach Out',
     panelInfo: 'Email, phone and social profiles to connect.',
+    isVisible: true,
   },
 ];
 
@@ -121,4 +136,23 @@ export const ACTIVITIES = [
   'GDG On-Campus SRKR PR Team (2024–25)',
   'Organizer - GDG Dev Challenge 2025',
   'Member - PAIE CELL SRKR',
+];
+
+export const EXPERIENCES = [
+  {
+    company: 'Tech Solutions',
+    role: 'Full Stack Intern',
+    startDate: '2022-05-01',
+    endDate: '2023-01-01',
+    status: 'completed',
+    description: 'Developed scalable microservices and enhanced mobile responsiveness.',
+  },
+  {
+    company: 'Innovation Labs',
+    role: 'MERN Developer',
+    startDate: '2023-06-01',
+    endDate: null,
+    status: 'ongoing',
+    description: 'Leading the architecture of a real-time analytics dashboard.',
+  }
 ];

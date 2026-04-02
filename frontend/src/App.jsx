@@ -8,6 +8,7 @@ import SkillsSection from './sections/SkillsSection';
 import ProjectsSection from './sections/ProjectsSection';
 import ActivitiesSection from './sections/ActivitiesSection';
 import BlogsSection from './sections/BlogsSection';
+import ExperienceSection from './sections/ExperienceSection';
 import ContactSection from './sections/ContactSection';
 import LeftControlPanel from './components/LeftControlPanel';
 import BrandIdentity from './components/BrandIdentity';
@@ -17,6 +18,7 @@ import SiteFooter from './components/SiteFooter';
 import ThemeToggle from './components/ThemeToggle';
 import { CmsProvider, CmsContext } from './context/CmsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+// import { Analytics } from "@vercel/analytics/react"
 
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -33,7 +35,7 @@ function LandingPage({ isLoaded }) {
 
     // HYDRATION: Ensure all core sections are fetched on mount
     useEffect(() => {
-        ['home', 'about', 'skills', 'projects', 'extra', 'layout'].forEach(fetchSection);
+        ['home', 'about', 'skills', 'projects', 'extra', 'layout', 'experience'].forEach(fetchSection);
     }, []);
 
     // Combine granular sections into a unified cmsData object for compatibility
@@ -45,6 +47,7 @@ function LandingPage({ isLoaded }) {
         gallery: sections.home?.gallery || [],
         skills: sections.skills?.skills || StaticContent.SKILLS,
         projects: sections.projects?.projects || StaticContent.PROJECTS,
+        experience: sections.experience?.experiences || StaticContent.EXPERIENCES,
         activities: sections.extra?.activities || StaticContent.ACTIVITIES
     };
 
@@ -94,6 +97,7 @@ function LandingPage({ isLoaded }) {
         projects: ProjectsSection,
         activities: ActivitiesSection,
         blogs: BlogsSection,
+        experience: ExperienceSection,
         contact: ContactSection,
     };
 

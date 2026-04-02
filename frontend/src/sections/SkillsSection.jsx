@@ -24,11 +24,11 @@ const getSkillIcon = (name) => {
 
 function SkillCategory({ label, items }) {
   return (
-    <article className="rounded-[32px] border border-[var(--border)] bg-[var(--cards)] p-8 backdrop-blur-xl shadow-[var(--shadow-lg)] relative overflow-hidden group">
+    <article className="rounded-[24px] md:rounded-[32px] border border-[var(--border)] bg-[var(--cards)] p-5 md:p-8 backdrop-blur-xl shadow-[var(--shadow-lg)] relative overflow-hidden group">
       {/* Background Accent Gradient */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
       
-      <h3 className="text-sm font-black uppercase tracking-[0.5em] text-[var(--text-secondary)] mb-8 border-l-2 border-[var(--accent)] pl-4">
+      <h3 className="text-[10px] md:text-sm font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[var(--text-secondary)] mb-6 md:mb-8 border-l-2 border-[var(--accent)] pl-3 md:pl-4">
         {label}
       </h3>
       
@@ -37,19 +37,19 @@ function SkillCategory({ label, items }) {
           <motion.div
             key={skill}
             whileHover={{ 
-              scale: 1.15, 
-              y: -8, 
+              scale: 1.1, 
+              y: -5, 
               backgroundColor: 'var(--accent)', 
               borderColor: 'var(--accent)',
               color: 'var(--bg-base)'
             }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] px-5 py-3 cursor-pointer group/skill"
+            className="flex items-center gap-2 md:gap-3 rounded-xl md:rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 md:px-5 md:py-3 cursor-pointer group/skill"
           >
-            <div className="transition-transform group-hover/skill:rotate-12 group-hover/skill:text-[var(--bg-base)]">
+            <div className="scale-90 md:scale-100 transition-transform group-hover/skill:rotate-12 group-hover/skill:text-[var(--bg-base)]">
                {getSkillIcon(skill)}
             </div>
-            <span className="text-[12px] font-bold tracking-wider text-[var(--text-secondary)] group-hover/skill:text-[var(--bg-base)] uppercase transition-colors">
+            <span className="text-[10px] md:text-[12px] font-bold tracking-wider text-[var(--text-secondary)] group-hover/skill:text-[var(--bg-base)] uppercase transition-colors">
               {skill}
             </span>
           </motion.div>
@@ -65,7 +65,7 @@ export default function SkillsSection({ section, content }) {
 
   return (
     <SectionShell id={section?.id} eyebrow={section?.eyebrow} title={section?.title}>
-      <div className="grid gap-4 md:gap-8 grid-cols-2 md:grid-cols-2 mt-8">
+      <div className="grid gap-6 md:gap-8 grid-cols-1 md:grid-cols-2 mt-8">
         {entries.map(([key, value]) => (
           <SkillCategory key={key} label={key} items={value} />
         ))}

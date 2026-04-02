@@ -68,8 +68,8 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
 
   if (!show) return null;
 
-  // Filter out Home from the shared dock per user request
-  const navItems = items.filter(item => item.id !== 'home');
+  // Filter out Home and any hidden sections from the shared dock
+  const navItems = items.filter(item => item.id !== 'home' && item.isVisible !== false);
 
   const handleSelect = (id, event) => {
     setActiveId(id, event);
