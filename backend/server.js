@@ -46,19 +46,23 @@ function pingUrl(url) {
 }
 
 function startKeepAliveJob() {
-  const isEnabled = String(process.env.KEEP_ALIVE_ENABLED || 'false').toLowerCase() === 'true';
+  // Always enable in production if we have any URL configured
+  const isEnabled = String(process.env.KEEP_ALIVE_ENABLED || 'true').toLowerCase() === 'true';
 
   if (!isEnabled) {
-    console.log('Keep-alive job is disabled.');
+    console.log('Keep-alive job is explicitly DISABLED via environment.');
     return;
   }
 
   const frontendUrl = process.env.KEEP_ALIVE_FRONTEND_URL;
-  const backendUrl = process.env.KEEP_ALIVE_BACKEND_URL || process.env.RAILWAY_STATIC_URL || process.env.PORTFOLIO_URL;
+  const backendUrl = process.env.KEEP_ALIVE_BACKEND_URL || 
+                     process.env.RAILWAY_STATIC_URL || 
+                     process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null ||
+                     process.env.PORTFOLIO_URL;
 
   const targets = [
-    { label: 'frontend', url: frontendUrl },
-    { label: 'backend', url: backendUrl }
+    { label: 'Frontend', url: frontendUrl },
+    { label: 'Backend', url: backendUrl }
   ].filter((target) => Boolean(target.url));
 
   if (targets.length === 0) {

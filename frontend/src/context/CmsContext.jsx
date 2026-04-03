@@ -13,15 +13,29 @@ export const CmsProvider = ({ children }) => {
 
   // 0. Global Auth Setup & Axios Interceptor
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      localStorage.setItem('admin_token', token);
-      setIsAuthenticated(true);
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-      localStorage.removeItem('admin_token');
-      setIsAuthenticated(false);
-    }
+    const validateToken = async () => {
+      if (token) {
+        try {
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          localStorage.setItem('admin_token', token);
+          // Verify with server
+          await axios.get(`${API_ROOT}/auth/check`);
+          setIsAuthenticated(true);
+        } catch (err) {
+          console.error("Session Validation Failed. Clearing.");
+          setToken(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem('admin_token');
+        }
+      } else {
+        delete axios.defaults.headers.common['Authorization'];
+        localStorage.removeItem('admin_token');
+        setIsAuthenticated(false);
+      }
+      setLoading(false); // Signal that we've checked the token
+    };
+
+    validateToken();
   }, [token]);
 
   // Auth Error Handler (Auto-Logout on 401/403)
@@ -55,13 +69,7 @@ export const CmsProvider = ({ children }) => {
     }
   };
 
-  // 1.5 Hydration effect to signal end of loading
-  useEffect(() => {
-    const init = async () => {
-      setLoading(false);
-    };
-    init();
-  }, []);
+  // Removed redundant hydration effect to favor token validation timing
 
   // 2. Commit Section Content
   const updateSection = async (slug, content) => {

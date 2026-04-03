@@ -7,7 +7,7 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 exports.requestOtp = async (req, res) => {
   const { email } = req.body;
-  const adminEmail = process.env.ADMIN_EMAIL || 'kushalsaialeti@gmail.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'kushalsaialeti98@gmail.com';
 
   if (email.toLowerCase() !== adminEmail.toLowerCase()) {
     return res.status(403).json({ message: 'Unauthorized. ACCESS DENIED.' });
@@ -83,24 +83,7 @@ exports.logout = async (req, res) => {
         await Blacklist.create({ token });
     }
 
-    // 2. Nuclear Option: Rotate JWT_SECRET in .env
-    const envPath = path.join(__dirname, '../.env');
-    if (fs.existsSync(envPath)) {
-        let envContent = fs.readFileSync(envPath, 'utf8');
-        const newSecret = crypto.randomBytes(64).toString('hex');
-        
-        // Regex to replace JWT_SECRET line if it exists
-        if (envContent.includes('JWT_SECRET=')) {
-            envContent = envContent.replace(/JWT_SECRET=.*/g, `JWT_SECRET=${newSecret}`);
-        } else {
-            envContent += `\nJWT_SECRET=${newSecret}`;
-        }
-        
-        fs.writeFileSync(envPath, envContent);
-        console.log('--- SECURITY PROTOCOL: JWT_SECRET ROTATED ---');
-    }
-    
-    res.json({ message: 'Session Revoked. Secret Rotated. Nuclear Logout Complete.' });
+    res.json({ message: 'Session Revoked. logout successful.' });
   } catch (error) {
     console.error('Rotation Error:', error);
     res.status(500).json({ message: 'Logout Protocol Failure.' });
