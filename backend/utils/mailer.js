@@ -1,24 +1,18 @@
-const nodemailer = require('nodemailer');
+const https = require('https');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT) || 465,
-  secure: process.env.SMTP_SECURE === 'true', 
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false // Bypasses certificate Handshake issues common on Render
-  },
-  connectionTimeout: 20000, 
-  greetingTimeout: 20000,
-  socketTimeout: 30000,
-});
-
+/**
+ * Dispatches an OTP via the Resend API.
+ * This replaces SMTP to bypass cloud-provider port blocks.
+ */
 const sendOtpMail = async (email, otp) => {
-  const mailOptions = {
-    from: `"Architect Console" <${process.env.SMTP_USER}>`,
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('[MAIL_ERROR]: RESEND_API_KEY is missing from environment variables.');
+    throw new Error('Mailing Service Not Configured.');
+  }
+
+  const data = JSON.stringify({
+    from: 'Architect Console <onboarding@resend.dev>',
     to: email,
     subject: 'Verification Code: [ADMIN ACCESS]',
     html: `
@@ -29,17 +23,44 @@ const sendOtpMail = async (email, otp) => {
         <p style="color: #A1A1A6; line-height: 1.6; font-size: 13px;">Enter this code into the 'Architect Console' login terminal to authorize your current session.</p>
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); color: #27c93f; font-size: 10px; font-weight: 900; text-transform: uppercase;">Version 1.4.2 [STABLE]</div>
       </div>
-    `,
+    `
+  });
+
+  const options = {
+    hostname: 'api.resend.com',
+    port: 443,
+    path: '/emails',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Length': data.length
+    }
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('[MAIL_SUCCESS]: Code dispatched to', email);
-    return info;
-  } catch (error) {
-    console.error('[MAIL_ERROR]: Detailed failure log:', error);
-    throw error;
-  }
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log('[MAIL_SUCCESS]: Code dispatched via Resend API.');
+          resolve(JSON.parse(body));
+        } else {
+          console.error('[MAIL_ERROR]: Resend API failure:', body);
+          reject(new Error(`Resend Error: ${res.statusCode}`));
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.error('[MAIL_ERROR]: API connection failure:', error);
+      reject(error);
+    });
+
+    req.write(data);
+    req.end();
+  });
 };
 
 module.exports = { sendOtpMail };
