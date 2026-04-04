@@ -55,9 +55,13 @@ function startKeepAliveJob() {
   }
 
   const frontendUrl = process.env.KEEP_ALIVE_FRONTEND_URL;
+  
+  // Try to auto-detect the backend URL from common providers (Render, Railway, or Manual)
   const backendUrl = process.env.KEEP_ALIVE_BACKEND_URL || 
+                     process.env.RENDER_EXTERNAL_URL ||
+                     (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/api` : null) ||
                      process.env.RAILWAY_STATIC_URL || 
-                     process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null ||
+                     (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/api` : null) ||
                      process.env.PORTFOLIO_URL;
 
   const targets = [
