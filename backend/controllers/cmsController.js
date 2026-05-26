@@ -1,12 +1,34 @@
 const CmsContent = require('../models/CmsContent');
+const { getCache, setCache, deleteCache, invalidateCachePattern } = require('../utils/redisClient');
+
+// OPTIMIZATION: Cache key constants
+const CACHE_KEYS = {
+  CONTENT: 'cms:content',
+};
+const CACHE_TTL = {
+  CONTENT: 3600, // 1 hour
+};
 
 // 1. Get all content for frontend
 exports.getContent = async (req, res) => {
   try {
-    const data = await CmsContent.findOne().sort({ createdAt: -1 });
+    // OPTIMIZATION: Check cache first
+    const cacheKey = CACHE_KEYS.CONTENT;
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      console.log('✅ Cache HIT: CMS Content');
+      return res.set('X-Cache', 'HIT').json(cachedData);
+    }
+
+    // If not in cache, fetch from database
+    const data = await CmsContent.findOne().sort({ createdAt: -1 }).lean(); // OPTIMIZATION: Use .lean() for read-only queries
     if (!data) return res.status(404).json({ message: "No content found" });
-    res.json(data);
+    
+    // OPTIMIZATION: Cache the result
+    await setCache(cacheKey, data, CACHE_TTL.CONTENT);
+    res.set('X-Cache', 'MISS').json(data);
   } catch (error) {
+    console.error('CMS Content fetch error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -24,8 +46,14 @@ exports.updateContent = async (req, res) => {
     }
 
     await data.save();
+    
+    // OPTIMIZATION: Invalidate cache after update
+    await deleteCache(CACHE_KEYS.CONTENT);
+    console.log('✅ Cache invalidated: CMS Content');
+    
     res.json(data);
   } catch (error) {
+    console.error('CMS Content update error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -89,8 +117,13 @@ exports.seedContent = async (req, res) => {
 
     const data = new CmsContent(initialData);
     await data.save();
+    
+    // OPTIMIZATION: Invalidate cache after seed
+    await deleteCache(CACHE_KEYS.CONTENT);
+    
     res.json({ message: "Content seeded successfully", data });
   } catch (error) {
+    console.error('CMS Content seed error:', error);
     res.status(500).json({ error: error.message });
   }
 };

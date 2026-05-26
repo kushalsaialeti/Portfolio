@@ -57,7 +57,7 @@ export const SkillBullet = ({ skill, direction, onComplete }) => {
   useEffect(() => {
     const bullet = bulletRef.current;
     const distance = window.innerWidth;
-    const duration = 3.5;
+    const duration = 15;
     const xMove = direction === "right" ? distance : -distance;
 
     gsap.to(bullet, {
@@ -82,7 +82,7 @@ export const SkillBullet = ({ skill, direction, onComplete }) => {
       
       {/* Skill Name HUD */}
       <div className="flex flex-col">
-        <span className="text-[10px] md:text-[12px] whitespace-nowrap font-black text-[var(--accent)] uppercase tracking-[0.2em] bg-black/90 px-3 py-1.5 rounded-sm border-l-2 border-[var(--accent)] shadow-[0_0_20px_rgba(34,255,102,0.3)] backdrop-blur-xl">
+          <span className="text-[12px] md:text-[14px] whitespace-nowrap font-black text-[var(--accent)] uppercase tracking-[0.2em] bg-black/85 px-3 py-1.5 rounded-sm border-l-2 border-[var(--accent)] shadow-[0_0_20px_rgba(34,255,102,0.3)] backdrop-blur-xl" style={{ textShadow: '0 0 4px rgba(34,255,102,0.6)' }}>
           {skill}
         </span>
       </div>
@@ -98,28 +98,31 @@ export const BattleJet = ({ category, skills, index }) => {
   const yPos = 15 + (index * 15); // Staggered rows
 
   const jetRef = useRef(null);
+  const [isActive, setIsActive] = useState(false);
 
-  // Flight Path Loop
+  // Flight Path Loop (active only when jet is visible)
   useEffect(() => {
+    if (!isActive) return;
     const jet = jetRef.current;
     const duration = 12 + Math.random() * 5;
     
     const fly = () => {
-      gsap.fromTo(jet, 
+      gsap.fromTo(jet,
         { left: `${startX}%` },
-        { 
-          left: `${targetX}%`, 
-          duration: duration, 
+        {
+          left: `${targetX}%`,
+          duration: duration,
           ease: "none",
-          onComplete: fly
+          onComplete: fly,
         }
       );
     };
     fly();
-  }, []);
+  }, [isActive, startX, targetX]);
 
-  // Firing Logic
+  // Firing Logic (only while jet is active)
   useEffect(() => {
+    if (!isActive) return;
     const interval = setInterval(() => {
       if (skills.length === 0) return;
       const skill = skills[Math.floor(Math.random() * skills.length)];
@@ -127,12 +130,30 @@ export const BattleJet = ({ category, skills, index }) => {
     }, 2000 + (index * 500));
 
     return () => clearInterval(interval);
-  }, [skills, index]);
+  }, [isActive, skills, index]);
 
   const removeBullet = (id) => {
     setBullets(prev => prev.filter(b => b.id !== id));
   };
 
+  // Random activation scheduler for jet visibility
+  useEffect(() => {
+    const schedule = () => {
+      const delay = Math.random() * 5000; // 5s before appearing
+      setTimeout(() => {
+        setIsActive(true);
+        const visible = Math.random() * 4000 + 4000; // 4-8s visible
+        setTimeout(() => {
+          setIsActive(false);
+          schedule();
+        }, visible);
+      }, delay);
+    };
+    schedule();
+  }, []);
+
+
+  if (!isActive) return null;
   return (
     <div 
       ref={jetRef}
@@ -141,7 +162,8 @@ export const BattleJet = ({ category, skills, index }) => {
     >
       {/* Category Tag */}
       <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.4em] text-[var(--accent)] opacity-40">
-        SQN-{index + 1} // {category}
+        {category}
+        {/* // {index + 1} */}
       </div>
 
       <FighterJetSVG direction={direction} />

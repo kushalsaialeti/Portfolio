@@ -56,7 +56,7 @@ export default function SkillsSection({ section, content }) {
 
         {/* HUD Data Overlays */}
         <div className="absolute top-8 left-10 pointer-events-none select-none">
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--accent)] mb-2">Theater Status</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--accent)] mb-2"></div>
           <div className="flex items-center gap-3">
              <div className={`w-3 h-3 rounded-full ${phase === 'COMBAT' ? 'bg-red-500 animate-ping' : 'bg-green-500 animate-pulse'}`} />
              <div className="text-[9px] uppercase font-mono text-[var(--text-secondary)]">

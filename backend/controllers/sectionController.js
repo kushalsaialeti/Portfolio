@@ -1,19 +1,35 @@
 const Section = require('../models/Section');
 const { cloudinary } = require('../utils/cloudinary');
+const { getCache, setCache, deleteCache } = require('../utils/redisClient');
+
+// OPTIMIZATION: Cache TTL constants
+const CACHE_TTL_SECTION = 86400; // 24 hours for static sections
 
 // 1. Get Section by Slug
 exports.getSection = async (req, res) => {
   try {
     const { slug } = req.params;
-    let section = await Section.findOne({ slug });
+    
+    // OPTIMIZATION: Check cache first
+    const cacheKey = `section:${slug}`;
+    const cachedSection = await getCache(cacheKey);
+    if (cachedSection) {
+      console.log(`✅ Cache HIT: Section ${slug}`);
+      return res.set('X-Cache', 'HIT').json(cachedSection);
+    }
+    
+    let section = await Section.findOne({ slug }).lean(); // OPTIMIZATION: Use .lean() for read-only
     
     if (!section) {
       // Return empty default if not found
-      return res.json({ slug, content: {} });
+      section = { slug, content: {} };
     }
     
-    res.json(section);
+    // OPTIMIZATION: Cache the result
+    await setCache(cacheKey, section, CACHE_TTL_SECTION);
+    res.set('X-Cache', 'MISS').json(section);
   } catch (error) {
+    console.error(`Section fetch error for ${req.params.slug}:`, error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -30,8 +46,14 @@ exports.updateSection = async (req, res) => {
       { new: true, upsert: true }
     );
     
+    // OPTIMIZATION: Invalidate cache after update
+    const cacheKey = `section:${slug}`;
+    await deleteCache(cacheKey);
+    console.log(`✅ Cache invalidated: Section ${slug}`);
+    
     res.json(section);
   } catch (error) {
+    console.error(`Section update error for ${req.params.slug}:`, error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -49,6 +71,7 @@ exports.uploadImage = async (req, res) => {
       message: "Upload successful"
     });
   } catch (error) {
+    console.error('Image upload error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -62,6 +85,7 @@ exports.deleteImage = async (req, res) => {
     await cloudinary.uploader.destroy(public_id);
     res.json({ message: "Image deleted from Cloudinary" });
   } catch (error) {
+    console.error('Image delete error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -86,6 +110,7 @@ exports.replaceImage = async (req, res) => {
       message: "Replacement successful"
     });
   } catch (error) {
+    console.error('Image replace error:', error);
     res.status(500).json({ error: error.message });
   }
 };
