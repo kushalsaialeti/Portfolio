@@ -1,40 +1,53 @@
-const nodemailer = require('nodemailer');
+const https = require('https');
 
 /**
- * Core function to send emails via Gmail SMTP.
+ * Core function to send emails via the Resend API (HTTP-based, works on Render free tier).
+ * This bypasses SMTP port blocks.
  */
-const sendGmailEmail = async ({ to, subject, html }) => {
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
-
-  if (!emailUser || !emailPass) {
-    console.error('[MAIL_ERROR]: EMAIL_USER or EMAIL_PASS is missing.');
+const sendResendEmail = async ({ to, subject, html }) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('[MAIL_ERROR]: RESEND_API_KEY is missing.');
     throw new Error('Mailing Service Not Configured.');
   }
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: emailUser,
-      pass: emailPass
-    }
-  });
-
-  const mailOptions = {
-    from: emailUser,
+  const data = JSON.stringify({
+    from: 'Architect Portfolio <onboarding@resend.dev>',
     to: to,
     subject: subject,
     html: html
+  });
+
+  const options = {
+    hostname: 'api.resend.com',
+    port: 443,
+    path: '/emails',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Length': Buffer.byteLength(data)
+    }
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('[MAIL_SUCCESS]: Email sent via Gmail:', info.response);
-    return info;
-  } catch (error) {
-    console.error('[MAIL_ERROR]: Gmail Failure:', error.message);
-    throw error;
-  }
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log('[MAIL_SUCCESS]: Email sent via Resend.');
+          resolve(JSON.parse(body));
+        } else {
+          console.error('[MAIL_ERROR]: Resend Failure:', body);
+          reject(new Error(`Resend Error: ${res.statusCode}`));
+        }
+      });
+    });
+    req.on('error', (err) => reject(err));
+    req.write(data);
+    req.end();
+  });
 };
 
 /* --- HIGH-LEVEL DISPATCHERS --- */
@@ -50,7 +63,7 @@ const sendOtpMail = async (email, otp) => {
       <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); color: #27c93f; font-size: 10px; font-weight: 900; text-transform: uppercase;">Version 1.4.2 [STABLE]</div>
     </div>
   `;
-  return sendGmailEmail({ to: email, subject: 'Verification Code: [ADMIN ACCESS]', html });
+  return sendResendEmail({ to: email, subject: 'Verification Code: [ADMIN ACCESS]', html });
 };
 
 // 2. Dispatch Contact Form Notification to Admin
@@ -71,7 +84,7 @@ const sendContactMail = async ({ adminEmail, name, email, subject, message }) =>
          <p style="margin-top: 30px; font-size: 10px; color: #A1A1A6; text-transform: uppercase;">Sent via Architect Console Notification Hub</p>
       </div>
     `;
-    return sendGmailEmail({ to: adminEmail, subject: `Inquiry: ${subject} from ${name}`, html });
+    return sendResendEmail({ to: adminEmail, subject: `Inquiry: ${subject} from ${name}`, html });
 };
 
 module.exports = { sendOtpMail, sendContactMail };
