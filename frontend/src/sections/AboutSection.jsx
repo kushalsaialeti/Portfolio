@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SectionShell from '../components/SectionShell';
-import { ABOUT_LINES } from '../constants/siteContent';
 
 export default function AboutSection({ section, content }) {
   const [currentImg, setCurrentImg] = useState(0);

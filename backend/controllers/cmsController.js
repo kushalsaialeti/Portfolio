@@ -73,6 +73,9 @@ exports.seedContent = async (req, res) => {
         instagram: 'https://www.instagram.com/_.kushal._.sai._.aleti._/',
         resume: 'https://drive.google.com/file/d/1IFhyy4t86A0wb_swCsI4bDfE_hN38FNb/view?usp=drive_link',
       },
+      siteSettings: {
+        activeTemplate: 'modern',
+      },
       siteSections: [
         { id: 'home', navLabel: 'Home', title: '', eyebrow: 'Welcome', panelInfo: '', order: 0 },
         { id: 'about', navLabel: 'About', title: 'About', eyebrow: 'Who I Am', panelInfo: 'My background...', order: 1 },

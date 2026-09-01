@@ -272,7 +272,10 @@ const StatusSlideshow = ({ profile }) => {
 };
 
 export default function HomeSection({ section, content, onNavigate }) {
-  const profile = content?.siteProfile;
+  const profile = {
+    ...(content?.siteProfile || {}),
+    gallery: content?.gallery || content?.siteProfile?.gallery || [],
+  };
   const projects = content?.projects || [];
 
   const metaIslands = [

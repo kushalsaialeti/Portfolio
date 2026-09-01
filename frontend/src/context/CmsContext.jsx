@@ -151,6 +151,51 @@ export const CmsProvider = ({ children }) => {
     return promise;
   };
 
+  const fetchContent = async (skipCache = false) => {
+    const cacheKey = 'content:full';
+
+    if (!skipCache) {
+      const cached = cacheService.get(cacheKey);
+      if (cached) {
+        setSections(prev => ({
+          ...prev,
+          content: cached || {}
+        }));
+        return cached;
+      }
+    }
+
+    if (requestCache.current.has(cacheKey)) {
+      return requestCache.current.get(cacheKey);
+    }
+
+    const promise = (async () => {
+      try {
+        const response = await axios.get(`${API_ROOT}/content`, {
+          timeout: 5000,
+        });
+        const data = response.data;
+
+        cacheService.set(cacheKey, data, CACHE_TTL.SECTIONS);
+
+        setSections(prev => ({
+          ...prev,
+          content: data || {}
+        }));
+
+        return data;
+      } catch (error) {
+        console.error('Error fetching CMS content:', error);
+        throw error;
+      } finally {
+        requestCache.current.delete(cacheKey);
+      }
+    })();
+
+    requestCache.current.set(cacheKey, promise);
+    return promise;
+  };
+
   // 2. Commit Section Content
   const updateSection = async (slug, content) => {
     try {
@@ -166,6 +211,40 @@ export const CmsProvider = ({ children }) => {
       return response.data;
     } catch (error) {
       console.error(`Error updating section ${slug}:`, error);
+      throw error;
+    }
+  };
+
+  const seedBaseline = async () => {
+    try {
+      const response = await axios.post(`${API_ROOT}/sections/seed-baseline`, {}, {
+        timeout: 10000,
+      });
+      cacheService.clear('content:full');
+      ['home', 'about', 'projects', 'skills', 'contact', 'layout'].forEach((slug) => {
+        cacheService.clear(`section:${slug}`);
+      });
+      await Promise.all(['home', 'about', 'projects', 'skills', 'contact', 'layout'].map((slug) => fetchSection(slug, true)));
+      return response.data;
+    } catch (error) {
+      console.error('Error seeding baseline:', error);
+      throw error;
+    }
+  };
+
+  const updateContent = async (content) => {
+    try {
+      const response = await axios.post(`${API_ROOT}/content/update`, content, {
+        timeout: 10000,
+      });
+      setSections(prev => ({
+        ...prev,
+        content: response.data || {}
+      }));
+      cacheService.clear('content:full');
+      return response.data;
+    } catch (error) {
+      console.error('Error updating CMS content:', error);
       throw error;
     }
   };
@@ -252,7 +331,10 @@ export const CmsProvider = ({ children }) => {
       loading, 
       isAuthenticated,
       fetchSection, 
+      fetchContent,
       updateSection, 
+      updateContent,
+      seedBaseline,
       uploadMedia, 
       replaceMedia,
       requestOtp,

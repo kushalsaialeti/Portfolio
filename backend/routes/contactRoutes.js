@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Contact = require('../models/Contact');
 const { sendContactMail } = require('../utils/mailer');
+const { verifyAdmin } = require('../middleware/authMiddleware');
 
 // POST: Submit contact form
 router.post('/', async (req, res) => {
@@ -27,7 +28,7 @@ router.post('/', async (req, res) => {
 });
 
 // GET: All contact messages (for Admin)
-router.get('/', async (req, res) => {
+router.get('/', verifyAdmin, async (req, res) => {
   try {
     const contacts = await Contact.find().sort({ createdAt: -1 });
     res.json(contacts);
@@ -37,7 +38,7 @@ router.get('/', async (req, res) => {
 });
 
 // PATCH: Mark as read
-router.patch('/:id/read', async (req, res) => {
+router.patch('/:id/read', verifyAdmin, async (req, res) => {
     try {
       await Contact.findByIdAndUpdate(req.params.id, { isRead: true });
       res.json({ message: 'Marked as read.' });
@@ -47,7 +48,7 @@ router.patch('/:id/read', async (req, res) => {
 });
 
 // DELETE: Remove contact message
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyAdmin, async (req, res) => {
     try {
       await Contact.findByIdAndDelete(req.params.id);
       res.json({ message: 'Deleted successfully.' });

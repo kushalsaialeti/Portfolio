@@ -1,11 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CmsContext } from '../context/CmsContext';
+import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Zap, ArrowRight, RefreshCw, Key, Mail } from 'lucide-react';
 
-export default function AdminLogin() {
+export default function AdminLogin({ dashboardPath = '/ks-atelier-console-94f7' }) {
   const { requestOtp, verifyOtp, isAuthenticated } = useContext(CmsContext);
+  const { setTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1); // 1: Email, 2: OTP
@@ -14,8 +16,12 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/admin');
-  }, [isAuthenticated, navigate]);
+    setTheme('light');
+  }, [setTheme]);
+
+  useEffect(() => {
+    if (isAuthenticated) navigate(dashboardPath);
+  }, [isAuthenticated, navigate, dashboardPath]);
 
   const handleRequestOtp = async (e) => {
     e.preventDefault();
@@ -37,7 +43,7 @@ export default function AdminLogin() {
     setError('');
     try {
       await verifyOtp(email, otp);
-      navigate('/admin');
+      navigate(dashboardPath);
     } catch (err) {
       setError(err.response?.data?.message || 'Verification Failed.');
     } finally {

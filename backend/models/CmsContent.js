@@ -12,6 +12,13 @@ const CmsContentSchema = new mongoose.Schema({
     instagram: String,
     resume: String,
   },
+  siteSettings: {
+    activeTemplate: {
+      type: String,
+      enum: ['modern', 'portfolio'],
+      default: 'modern',
+    },
+  },
   siteSections: [{
     id: String,
     navLabel: String,

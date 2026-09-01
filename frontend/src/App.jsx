@@ -1,32 +1,29 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Lenis from '@studio-freight/lenis';
-import * as StaticContent from './constants/siteContent'; 
 import HomeSection from './sections/HomeSection';
 import AboutSection from './sections/AboutSection';
 import SkillsSection from './sections/SkillsSection';
 import ProjectsSection from './sections/ProjectsSection';
-import ActivitiesSection from './sections/ActivitiesSection';
-import BlogsSection from './sections/BlogsSection';
-import ExperienceSection from './sections/ExperienceSection';
 import ContactSection from './sections/ContactSection';
 import LeftControlPanel from './components/LeftControlPanel';
 import BrandIdentity from './components/BrandIdentity';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './admin/AdminLogin';
-import SiteFooter from './components/SiteFooter';
 import ThemeToggle from './components/ThemeToggle';
 import { CmsProvider, CmsContext } from './context/CmsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 // import { Analytics } from "@vercel/analytics/react"
 
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const CORE_SECTION_IDS = ['home', 'about', 'projects', 'skills', 'contact'];
+const ADMIN_LOGIN_PATH = '/admin-portal-1622';
+const ADMIN_DASHBOARD_PATH = '/admin-portal-1622-dashboard';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useContext(CmsContext);
   if (isAuthenticated === undefined) return null; // Wait for hydration
-  return isAuthenticated ? children : <Navigate to="/admin-login" replace />;
+  return isAuthenticated ? children : <Navigate to={ADMIN_LOGIN_PATH} replace />;
 };
 
 function LandingPage({ isLoaded }) {
@@ -35,20 +32,21 @@ function LandingPage({ isLoaded }) {
 
     // HYDRATION: Ensure all core sections are fetched on mount
     useEffect(() => {
-        ['home', 'about', 'skills', 'projects', 'extra', 'layout', 'experience'].forEach(fetchSection);
+        ['home', 'about', 'projects', 'skills', 'contact', 'layout'].forEach(fetchSection);
     }, []);
+
+    const visibleSectionList = (sections.layout?.siteSections || [])
+        .filter((section) => CORE_SECTION_IDS.includes(section.id));
 
     // Combine granular sections into a unified cmsData object for compatibility
     const cmsData = {
-        siteProfile: sections.home?.profile || StaticContent.SITE_PROFILE,
-        siteSections: sections.layout?.siteSections || StaticContent.SITE_SECTIONS,
-        blogs: sections.extra?.blogs || StaticContent.BLOGS,
-        aboutLines: sections.about?.aboutLines || StaticContent.ABOUT_LINES,
+        siteProfile: sections.home?.profile || {},
+        siteSections: visibleSectionList,
+        aboutLines: sections.about?.aboutLines || [],
         gallery: sections.home?.gallery || [],
-        skills: sections.skills?.skills || StaticContent.SKILLS,
-        projects: sections.projects?.projects || StaticContent.PROJECTS,
-        experience: sections.experience?.experiences || StaticContent.EXPERIENCES,
-        activities: sections.extra?.activities || StaticContent.ACTIVITIES
+        skills: sections.skills?.skills || {},
+        projects: sections.projects?.projects || [],
+        contact: sections.contact || {},
     };
 
     // SMOOTH SCROLL ENGINE (Lenis)
@@ -95,9 +93,6 @@ function LandingPage({ isLoaded }) {
         about: AboutSection,
         skills: SkillsSection,
         projects: ProjectsSection,
-        activities: ActivitiesSection,
-        blogs: BlogsSection,
-        experience: ExperienceSection,
         contact: ContactSection,
     };
 
@@ -162,9 +157,9 @@ function App() {
                 <Router>
                     <Routes>
                         <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
-                        <Route path="/admin-login" element={<AdminLogin />} />
+                        <Route path={ADMIN_LOGIN_PATH} element={<AdminLogin dashboardPath={ADMIN_DASHBOARD_PATH} />} />
                         <Route 
-                        path="/admin/*" 
+                        path={`${ADMIN_DASHBOARD_PATH}/*`}
                         element={
                             <ProtectedRoute>
                             <AdminDashboard />

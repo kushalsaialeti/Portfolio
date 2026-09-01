@@ -5,6 +5,7 @@ const { upload } = require('../utils/cloudinary');
 const { verifyAdmin } = require('../middleware/authMiddleware');
 
 // 1. Section Content Management (JSON-Based)
+router.post('/seed-baseline', verifyAdmin, controller.seedBaseline);
 router.get('/:slug', controller.getSection);
 router.put('/:slug', verifyAdmin, controller.updateSection);
 

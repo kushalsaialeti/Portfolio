@@ -1,7 +1,16 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { CmsContext } from '../context/CmsContext';
-import { Save, RefreshCw, LayoutPanelTop, Plus, Trash2, ArrowUp, ArrowDown, Hash } from 'lucide-react';
+import { Save, RefreshCw, LayoutPanelTop, ArrowUp, ArrowDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const CORE_SECTION_IDS = ['home', 'about', 'projects', 'skills', 'contact'];
+const SECTION_DRAFTS = [
+  { id: 'home', navLabel: 'Home', title: '', eyebrow: 'Welcome', panelInfo: '', isVisible: true },
+  { id: 'about', navLabel: 'About', title: 'About', eyebrow: 'Who I Am', panelInfo: '', isVisible: true },
+  { id: 'projects', navLabel: 'Projects', title: 'Projects', eyebrow: 'Work', panelInfo: '', isVisible: true },
+  { id: 'skills', navLabel: 'Skills', title: 'Skills', eyebrow: 'Stack', panelInfo: '', isVisible: true },
+  { id: 'contact', navLabel: 'Contact', title: 'Contact', eyebrow: 'Reach Out', panelInfo: '', isVisible: true },
+];
 
 export default function LayoutEditor() {
   const { sections, fetchSection, updateSection } = useContext(CmsContext);
@@ -14,7 +23,12 @@ export default function LayoutEditor() {
 
   useEffect(() => {
     if (sections.layout) {
-      setLocalSections(sections.layout.siteSections || []);
+      const currentSections = sections.layout.siteSections || SECTION_DRAFTS;
+      const filteredSections = currentSections.filter((section) => CORE_SECTION_IDS.includes(section.id));
+      const restoredSections = SECTION_DRAFTS.filter(
+        (section) => !filteredSections.some((current) => current.id === section.id)
+      );
+      setLocalSections([...filteredSections, ...restoredSections]);
     }
   }, [sections.layout]);
 
@@ -27,20 +41,6 @@ export default function LayoutEditor() {
       alert('Commit failed.');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleAddSection = () => {
-    const id = prompt("Enter section ID (e.g. 'new-works'):").toLowerCase().replace(/\s/g, '-');
-    const navLabel = prompt("Enter Navigation Label (e.g. 'Expertise'):");
-    if (id && navLabel) {
-      setLocalSections([...localSections, { id, navLabel, isVisible: true, title: navLabel, eyebrow: 'System Node' }]);
-    }
-  };
-
-  const handleDeleteSection = (index) => {
-    if (window.confirm("CRITICAL: This will remove the section from navigation and the landing stack. Proceed?")) {
-      setLocalSections(localSections.filter((_, i) => i !== index));
     }
   };
 
@@ -74,12 +74,6 @@ export default function LayoutEditor() {
           <p className="text-[var(--text-secondary)] text-sm mt-1 uppercase tracking-widest font-medium">Reorder and toggle visibility of your portfolio sections</p>
         </div>
         <div className="flex gap-4">
-          <button 
-            onClick={handleAddSection}
-            className="px-6 py-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)] text-[var(--accent)] flex items-center gap-2 hover:bg-[var(--accent)]/10 transition-all font-black text-[10px] uppercase tracking-widest"
-          >
-            <Plus className="w-4 h-4" /> Add Section
-          </button>
           <button 
             onClick={handleSave}
             disabled={isSaving}
@@ -150,12 +144,6 @@ export default function LayoutEditor() {
                        </div>
                     </div>
 
-                    <button 
-                        onClick={() => handleDeleteSection(idx)}
-                        className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500/40 hover:bg-red-500 hover:text-white transition-all group/del"
-                    >
-                        <Trash2 className="w-5 h-5" />
-                    </button>
                  </div>
               </div>
             </motion.div>

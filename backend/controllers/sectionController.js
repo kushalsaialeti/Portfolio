@@ -1,6 +1,7 @@
 const Section = require('../models/Section');
 const { cloudinary } = require('../utils/cloudinary');
 const { getCache, setCache, deleteCache } = require('../utils/redisClient');
+const { defaultSections } = require('../data/defaultSections');
 
 // OPTIMIZATION: Cache TTL constants
 const CACHE_TTL_SECTION = 86400; // 24 hours for static sections
@@ -21,8 +22,7 @@ exports.getSection = async (req, res) => {
     let section = await Section.findOne({ slug }).lean(); // OPTIMIZATION: Use .lean() for read-only
     
     if (!section) {
-      // Return empty default if not found
-      section = { slug, content: {} };
+      section = { slug, content: defaultSections[slug] || {} };
     }
     
     // OPTIMIZATION: Cache the result
@@ -30,6 +30,26 @@ exports.getSection = async (req, res) => {
     res.set('X-Cache', 'MISS').json(section);
   } catch (error) {
     console.error(`Section fetch error for ${req.params.slug}:`, error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.seedBaseline = async (req, res) => {
+  try {
+    const writes = Object.entries(defaultSections).map(([slug, content]) => (
+      Section.findOneAndUpdate(
+        { slug },
+        { content },
+        { new: true, upsert: true }
+      )
+    ));
+
+    const sections = await Promise.all(writes);
+    await Promise.all(Object.keys(defaultSections).map((slug) => deleteCache(`section:${slug}`)));
+
+    res.json({ message: 'Five-section baseline seeded successfully.', sections });
+  } catch (error) {
+    console.error('Baseline seed error:', error);
     res.status(500).json({ error: error.message });
   }
 };

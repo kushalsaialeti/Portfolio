@@ -1,164 +1,144 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Save, RefreshCw, LayoutPanelTop, FileEdit, 
-    Database, Share2, Plus, Trash2, Code2, BookOpen, User, 
-    Zap, ListCheck, Layers, Terminal, Server, LogOut, Sun, Moon, Briefcase
-} from 'lucide-react';
+import { Database, FileText, Grid3X3, Home, LayoutPanelTop, LogOut, Mail, RefreshCw, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CmsContext } from '../context/CmsContext';
 import { useTheme } from '../context/ThemeContext';
-import ThemeToggle from '../components/ThemeToggle';
-import * as StaticContent from '../constants/siteContent';
 
-// Import Section Editors
 import HomeEditor from '../admin/HomeEditor';
 import LayoutEditor from '../admin/LayoutEditor';
 import AboutEditor from '../admin/AboutEditor';
 import SkillsEditor from '../admin/SkillsEditor';
 import ProjectsEditor from '../admin/ProjectsEditor';
-import ExperienceEditor from '../admin/ExperienceEditor';
-import ExtraEditor from '../admin/ExtraEditor';
+import ContactEditor from '../admin/ContactEditor';
 import InquiryManager from '../admin/InquiryManager';
 
+const tabs = [
+  { id: 'profile', icon: Home, label: 'Hero' },
+  { id: 'layout', icon: LayoutPanelTop, label: 'Sections' },
+  { id: 'content', icon: FileText, label: 'About' },
+  { id: 'work', icon: Grid3X3, label: 'Projects' },
+  { id: 'stack', icon: Sparkles, label: 'Skills' },
+  { id: 'contact', icon: Mail, label: 'Contact' },
+];
+
 export default function AdminDashboard() {
-    const navigate = useNavigate();
-    const { loading, injectBaseline, logout } = useContext(CmsContext);
-    const { theme } = useTheme();
-    const [activeTab, setActiveTab] = useState('profile');
+  const navigate = useNavigate();
+  const { loading, seedBaseline, logout } = useContext(CmsContext);
+  const { setTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [isSeeding, setIsSeeding] = useState(false);
 
-    const handleSeed = () => {
-        if (window.confirm('MIGRATE ARCHITECTURE: Are you sure you want to overwrite the current database with the high-fidelity static baseline? All current DB data will be replaced.')) {
-            const staticData = {
-                home: { profile: StaticContent.SITE_PROFILE, stack: ['React', 'Node.js', 'Vite', 'Cloudinary'] },
-                layout: { siteSections: StaticContent.SITE_SECTIONS },
-                about: { aboutLines: StaticContent.ABOUT_LINES },
-                skills: { skills: StaticContent.SKILLS },
-                projects: { projects: StaticContent.PROJECTS },
-                experience: { experiences: StaticContent.EXPERIENCES },
-                extra: { blogs: StaticContent.BLOGS, activities: StaticContent.ACTIVITIES }
-            };
-            injectBaseline(staticData);
-        }
-    };
+  useEffect(() => {
+    setTheme('light');
+  }, [setTheme]);
 
-    const tabs = [
-        { id: 'profile', icon: User, label: 'Identity' },
-        { id: 'layout', icon: LayoutPanelTop, label: 'Layout' },
-        { id: 'content', icon: FileEdit, label: 'Narrative' },
-        { id: 'stack', icon: Code2, label: 'Stack' },
-        { id: 'work', icon: Database, label: 'Portfolio' },
-        { id: 'journey', icon: Briefcase, label: 'Journey' },
-        { id: 'extra', icon: BookOpen, label: 'Insights' },
-        { id: 'signals', icon: Zap, label: 'Signals' }
-    ];
+  const handleSeed = async () => {
+    if (!window.confirm('Replace current CMS content with the backend five-section baseline?')) return;
 
-    if (loading) return (
-        <div className="min-h-screen bg-[var(--bg-base)] flex flex-col items-center justify-center gap-8">
-            <RefreshCw className="w-12 h-12 text-[var(--accent)] animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-[0.8em] text-[var(--text-secondary)]/40">Synchronizing Distributed Cache</p>
-        </div>
-    );
+    setIsSeeding(true);
+    try {
+      await seedBaseline();
+      alert('Backend baseline synced successfully.');
+    } catch (error) {
+      alert('Baseline sync failed.');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
+  if (loading) {
     return (
-        <main className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] selection:bg-[var(--accent)]/20 font-inter antialiased transition-colors duration-500">
-            {/* PERSISTENT SYSTEM HEADER */}
-            <header className="sticky top-0 z-[100] bg-[var(--bg-base)]/80 backdrop-blur-2xl border-b border-[var(--border)] px-6 md:px-16 py-8">
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 bg-[var(--accent)] text-black rounded-3xl shadow-[0_0_40px_rgba(39,201,63,0.3)]">
-                            <Terminal className="w-6 h-6 font-bold" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                               <p className="text-[10px] font-black uppercase tracking-[0.6em] text-[var(--accent)]">ADMIN CORE V2.0</p>
-                               <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-                            </div>
-                            <h1 className="text-2xl font-black uppercase tracking-tight">System Architect Console</h1>
-                        </div>
-                    </div>
-                    
-                    <div className="flex gap-4">
-                        <button 
-                            onClick={handleSeed}
-                            className="flex items-center gap-3 px-8 py-3 rounded-full border border-[var(--border)] text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[var(--surface)] transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                        >
-                            <Database className="w-4 h-4 text-[var(--accent)]" /> Sync Baseline
-                        </button>
-
-                        <button 
-                            onClick={async () => {
-                                await logout();
-                                navigate('/');
-                            }}
-                            className="flex items-center gap-3 px-8 py-3 rounded-full border border-[var(--border)] text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[var(--surface)] transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                        >
-                            <LogOut className="w-4 h-4" /> Exit Console
-                        </button>
-
-                        <div className="h-10 w-[1px] bg-[var(--border)]" />
-                        
-                        <ThemeToggle />
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 p-6 md:p-16">
-                {/* GLOBAL NAVIGATION SIDEBAR */}
-                <aside className="lg:w-64 flex-shrink-0">
-                    <nav className="sticky top-40 flex flex-col gap-4">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-4 px-6 py-5 rounded-2xl border transition-all duration-300 text-left cursor-pointer group ${activeTab === tab.id 
-                                    ? 'bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)]' 
-                                    : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-primary)]/20 hover:text-[var(--text-primary)]'}`}
-                            >
-                                <tab.icon className={`w-5 h-5 group-hover:scale-110 transition-transform ${activeTab === tab.id ? 'scale-110' : ''}`} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">{tab.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-                </aside>
-
-                {/* DYNAMIC COMPONENT STACK */}
-                <div className="flex-grow">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        >
-                            {activeTab === 'profile' && <HomeEditor />}
-                            {activeTab === 'layout' && <LayoutEditor />}
-                            {activeTab === 'content' && <AboutEditor />}
-                            {activeTab === 'stack' && <SkillsEditor />}
-                            {activeTab === 'work' && <ProjectsEditor />}
-                            {activeTab === 'journey' && <ExperienceEditor />}
-                            {activeTab === 'extra' && <ExtraEditor />}
-                            {activeTab === 'signals' && <InquiryManager />}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-            </div>
-
-            {/* SHARED SYSTEM FOOTER */}
-            <footer className="mt-20 py-20 border-t border-white/5 text-center bg-black/40">
-                <div className="flex items-center justify-center gap-10 mb-8 opacity-20 hover:opacity-100 transition-opacity">
-                    <Zap className="w-5 h-5 text-[#27c93f]" />
-                    <ListCheck className="w-5 h-5 text-[#27c93f]" />
-                    <Layers className="w-5 h-5 text-[#27c93f]" />
-                    <Terminal className="w-5 h-5 text-[#27c93f]" />
-                    <Server className="w-5 h-5 text-[#27c93f]" />
-                </div>
-                <div className="space-y-2">
-                    <p className="text-[10px] font-black uppercase tracking-[1em] text-white/10">Architecture Committed to Main Cluster &copy; 2026</p>
-                    <p className="text-[8px] font-black uppercase tracking-[0.5em] text-white/5">Distributed Media Storage via Cloudinary Integration</p>
-                </div>
-            </footer>
-        </main>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-5 text-[#191A23]">
+        <RefreshCw className="w-10 h-10 text-[#191A23] animate-spin" />
+        <p className="text-sm font-semibold">Loading CMS</p>
+      </div>
     );
+  }
+
+  return (
+    <main className="admin-surface min-h-screen bg-white text-[#191A23] antialiased">
+      <header className="sticky top-0 z-[100] border-b border-[#191A23] bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-5 md:px-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <button
+              type="button"
+              onClick={() => setActiveTab('profile')}
+              className="flex items-center gap-3 text-left"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#191A23] text-[#B9FF66]">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block w-fit rounded-md bg-[#B9FF66] px-2 text-lg font-semibold leading-tight">Portfolio CMS</span>
+                <span className="mt-1 block text-sm text-[#191A23]/70">Edit every public section from one place.</span>
+              </span>
+            </button>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleSeed}
+                disabled={isSeeding}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#191A23] bg-[#F3F3F3] px-5 py-3 text-sm font-medium shadow-[0_4px_0_#191A23] transition hover:-translate-y-0.5 disabled:opacity-60"
+              >
+                {isSeeding ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+                Sync Baseline
+              </button>
+              <button
+                onClick={async () => {
+                  await logout();
+                  navigate('/');
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#191A23] bg-[#191A23] px-5 py-3 text-sm font-medium text-white shadow-[0_4px_0_#B9FF66] transition hover:-translate-y-0.5"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          </div>
+
+          <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-[#191A23] bg-[#F3F3F3] p-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex min-w-fit items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                  activeTab === tab.id
+                    ? 'bg-[#B9FF66] text-[#191A23] shadow-[0_3px_0_#191A23]'
+                    : 'text-[#191A23]/70 hover:bg-white hover:text-[#191A23]'
+                }`}
+              >
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
+            {activeTab === 'profile' && <HomeEditor />}
+            {activeTab === 'layout' && <LayoutEditor />}
+            {activeTab === 'content' && <AboutEditor />}
+            {activeTab === 'work' && <ProjectsEditor />}
+            {activeTab === 'stack' && <SkillsEditor />}
+            {activeTab === 'contact' && (
+              <div className="space-y-10">
+                <ContactEditor />
+                <InquiryManager />
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </section>
+    </main>
+  );
 }

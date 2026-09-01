@@ -2,15 +2,14 @@
 
 @layer base {
   :root {
-    /* HIGH-FIDELITY LIGHT THEME (INSPIRATION: SYMMETRIC MINIMALISM) */
     --bg-base: #FFFFFF;
-    --bg-secondary: #F8F8F9;
-    --surface: #F2F2F7;
+    --bg-secondary: #F3F3F3;
+    --surface: #F3F3F3;
     --cards: rgba(255, 255, 255, 0.95);
-    --text-primary: #000000;
-    --text-secondary: #636366;
-    --accent: #27c93f;
-    --border: rgba(0, 0, 0, 0.08);
+    --text-primary: #191A23;
+    --text-secondary: rgba(25, 26, 35, 0.68);
+    --accent: #B9FF66;
+    --border: rgba(25, 26, 35, 0.18);
     --glass-bg: rgba(255, 255, 255, 0.85);
     --apple-curve: cubic-bezier(0.22, 1, 0.36, 1);
     
@@ -21,13 +20,13 @@
 
   /* DARK THEME (INSPIRATION: APPLE DARK UI) */
   [data-theme='dark'] {
-    --bg-base: #000000;
-    --bg-secondary: #111111;
+    --bg-base: #191A23;
+    --bg-secondary: #101119;
     --surface: #1C1C1E;
     --cards: rgba(28, 28, 30, 0.8);
     --text-primary: #FFFFFF;
     --text-secondary: #8E8E93;
-    --accent: #30d158; /* Slightly brighter green for dark mode accessibility */
+    --accent: #B9FF66;
     --border: rgba(255, 255, 255, 0.12);
     --glass-bg: rgba(0, 0, 0, 0.75);
     
@@ -67,6 +66,70 @@
     max-height: 100vh;
     object-fit: contain;
   }
+}
+
+.admin-surface,
+.admin-surface input,
+.admin-surface textarea,
+.admin-surface select,
+.admin-surface button {
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.admin-surface .text-white,
+.admin-surface .text-\[\#A1A1A6\] {
+  color: #191A23;
+}
+
+.admin-surface .text-\[\#27c93f\],
+.admin-surface .text-white\/60,
+.admin-surface .text-white\/40,
+.admin-surface .text-white\/30 {
+  color: rgba(25, 26, 35, 0.72);
+}
+
+.admin-surface .bg-white\/\[0\.02\],
+.admin-surface .bg-white\/\[0\.03\],
+.admin-surface .bg-white\/5,
+.admin-surface .bg-black\/20,
+.admin-surface .bg-black\/30,
+.admin-surface .bg-black\/40 {
+  background-color: #F3F3F3;
+}
+
+.admin-surface .border-white\/5,
+.admin-surface .border-white\/10 {
+  border-color: #191A23;
+}
+
+.admin-surface input,
+.admin-surface textarea,
+.admin-surface select {
+  background: #ffffff;
+  border: 1px solid #191A23;
+  color: #191A23;
+  box-shadow: 0 3px 0 #191A23;
+}
+
+.admin-surface input::placeholder,
+.admin-surface textarea::placeholder {
+  color: rgba(25, 26, 35, 0.35);
+}
+
+.admin-surface .bg-\[\#27c93f\],
+.admin-surface .bg-\[var\(--accent\)\] {
+  background-color: #B9FF66;
+}
+
+.admin-surface .border-\[\#27c93f\],
+.admin-surface .border-\[var\(--accent\)\] {
+  border-color: #191A23;
+}
+
+.admin-surface .rounded-\[40px\],
+.admin-surface .rounded-\[32px\],
+.admin-surface .rounded-3xl {
+  border-radius: 28px;
 }
 
 @layer utilities {

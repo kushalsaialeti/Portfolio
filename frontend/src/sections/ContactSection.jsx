@@ -31,22 +31,24 @@ function ContactCard({ label, value, href, icon: Icon }) {
 
 export default function ContactSection({ section, content }) {
   const profile = content?.siteProfile;
+  const contact = content?.contact || {};
+  const placeholders = contact.placeholders || {};
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [status, setStatus] = useState({ type: '', msg: '' });
   const [loading, setLoading] = useState(false);
 
   const contactCards = [
-    { label: 'Direct Email', value: profile?.email || 'Loading...', icon: Mail, href: `mailto:${profile?.email}` },
-    { label: 'Network', value: 'LinkedIn', icon: Linkedin, href: profile?.linkedin },
-    { label: 'GitHub', value: 'Source Code', icon: Github, href: profile?.github },
-    { label: 'Phone', value: profile?.phone || 'Loading...', icon: Phone, href: `tel:${profile?.phone?.replace(/\s+/g, '')}` },
+    profile?.email && { label: 'Direct Email', value: profile.email, icon: Mail, href: `mailto:${profile.email}` },
+    profile?.linkedin && { label: 'Network', value: 'LinkedIn', icon: Linkedin, href: profile.linkedin },
+    profile?.github && { label: 'GitHub', value: 'Source Code', icon: Github, href: profile.github },
+    profile?.phone && { label: 'Phone', value: profile.phone, icon: Phone, href: `tel:${profile.phone.replace(/\s+/g, '')}` },
     { 
       label: 'Location', 
       value: profile?.location?.text || 'Bhimavaram, SRKR', 
       icon: MapPin, 
       href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile?.location?.query || "SRKR Engineering College, Bhimavaram")}` 
     }
-  ].filter(c => c.href || c.label === 'Location');
+  ].filter(Boolean);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,10 +57,10 @@ export default function ContactSection({ section, content }) {
 
     try {
       await axios.post(`${API_URL}/contact`, formData);
-      setStatus({ type: 'success', msg: 'Message sent successfully!' });
+      setStatus({ type: 'success', msg: contact.successMessage || 'Message sent successfully!' });
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (err) {
-      setStatus({ type: 'error', msg: 'Failed to send message. Please try again.' });
+      setStatus({ type: 'error', msg: contact.errorMessage || 'Failed to send message. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -71,9 +73,9 @@ export default function ContactSection({ section, content }) {
         {/* LEFT SIDE: Contact Info */}
         <div className="lg:w-2/5 space-y-8">
           <div className="space-y-4">
-            <h3 className="text-xl font-black uppercase tracking-widest text-[var(--text-primary)]">Contact Info</h3>
+            <h3 className="text-xl font-black uppercase tracking-widest text-[var(--text-primary)]">{contact.introTitle || 'Contact Info'}</h3>
             <p className="text-sm text-[var(--text-secondary)] font-medium leading-relaxed max-w-sm">
-               Whether you have a question or just want to say hi, I'll try my best to get back to you!
+               {contact.introText || "Whether you have a question or just want to say hi, I'll try my best to get back to you!"}
             </p>
           </div>
 
@@ -122,7 +124,7 @@ export default function ContactSection({ section, content }) {
               {/* Decorative background glow */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 blur-3xl -z-10 group-hover:bg-[var(--accent)]/10 transition-all duration-700" />
               
-              <h3 className="text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)] mb-8">Send a Message</h3>
+              <h3 className="text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)] mb-8">{contact.formTitle || 'Send a Message'}</h3>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -131,7 +133,7 @@ export default function ContactSection({ section, content }) {
                     <input 
                       required
                       type="text" 
-                      placeholder="Your Name"
+                      placeholder={placeholders.name || 'Your Name'}
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl px-6 py-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-all placeholder:text-[var(--text-secondary)]/30"
@@ -142,7 +144,7 @@ export default function ContactSection({ section, content }) {
                     <input 
                       required
                       type="email" 
-                      placeholder="Your Email"
+                      placeholder={placeholders.email || 'Your Email'}
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl px-6 py-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-all placeholder:text-[var(--text-secondary)]/30"
@@ -155,7 +157,7 @@ export default function ContactSection({ section, content }) {
                   <input 
                     required
                     type="text" 
-                    placeholder="Brief Subject"
+                    placeholder={placeholders.subject || 'Brief Subject'}
                     value={formData.subject}
                     onChange={(e) => setFormData({...formData, subject: e.target.value})}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl px-6 py-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-all placeholder:text-[var(--text-secondary)]/30"
@@ -166,7 +168,7 @@ export default function ContactSection({ section, content }) {
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)]">Message</label>
                   <textarea 
                     rows="4" 
-                    placeholder="Tell me more about your project..."
+                    placeholder={placeholders.message || 'Tell me more about your project...'}
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl px-6 py-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)] transition-all resize-none placeholder:text-[var(--text-secondary)]/30"
@@ -179,7 +181,7 @@ export default function ContactSection({ section, content }) {
                   className={`w-full flex items-center justify-center gap-3 rounded-2xl py-4 font-black uppercase tracking-[0.3em] text-[11px] transition-all
                     ${loading ? 'bg-[var(--text-secondary)]/50 cursor-not-allowed' : 'bg-[var(--accent)] text-[var(--bg-base)] shadow-[0_10px_30px_var(--accent)]/30 hover:scale-[1.02] active:scale-[0.98]'}`}
                 >
-                  {loading ? 'Sending...' : 'Dispatch Message'}
+                  {loading ? 'Sending...' : (contact.submitLabel || 'Dispatch Message')}
                   {!loading && <Send className="w-4 h-4" />}
                 </button>
 

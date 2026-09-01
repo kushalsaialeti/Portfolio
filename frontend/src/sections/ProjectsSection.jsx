@@ -1,104 +1,91 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import SectionShell from '../components/SectionShell';
-import { Eye, ExternalLink } from 'lucide-react';
 
-function ProjectCard({ project }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({ 
-      x: e.clientX - rect.left, 
-      y: e.clientY - rect.top 
-    });
-  };
+function ProjectCard({ project, index }) {
+  const variants = [
+    'bg-[#F3F3F3] text-[#191A23]',
+    'bg-[#B9FF66] text-[#191A23]',
+    'bg-[#191A23] text-white',
+  ];
+  const isDark = index % 3 === 2;
 
   return (
-    <motion.div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onMouseMove={handleMouseMove}
-      className="relative group rounded-[24px] md:rounded-[32px] overflow-hidden border border-[var(--border)] bg-[var(--cards)] backdrop-blur-3xl transition-all duration-500 cursor-none h-fit shadow-[var(--shadow-md)]"
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      whileHover={{ y: -6 }}
+      className={`group overflow-hidden rounded-[28px] border border-[#191A23] p-5 shadow-[0_5px_0_#191A23] transition ${variants[index % variants.length]}`}
     >
-      <a href={project.live} target="_blank" rel="noreferrer" className="block p-3 md:p-4">
-        {/* MEDIA CONTAINER */}
-        <div className="relative aspect-[16/10] rounded-[24px] overflow-hidden bg-[var(--bg-secondary)]/40 border border-[var(--border)]">
-           {project.preview?.url ? (
-             <img 
-               src={project.preview.url} 
-               alt={project.name} 
-               className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
-             />
-           ) : (
-             <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]/20 uppercase tracking-widest text-[10px]">
-                Asset Initializing
-             </div>
-           )}
-           
-           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="grid gap-5 lg:grid-cols-[1fr_220px] lg:items-stretch">
+        <div className="flex min-h-[220px] flex-col justify-between gap-8">
+          <div className="space-y-5">
+            <div className={`flex w-fit items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold ${isDark ? 'bg-[#B9FF66] text-[#191A23]' : 'bg-white text-[#191A23]'}`}>
+              <ExternalLink className="h-4 w-4" />
+              Project
+            </div>
+            <div>
+              <h3 className="max-w-xl text-3xl font-semibold leading-tight md:text-4xl">{project.name || 'Untitled Project'}</h3>
+              <p className={`mt-4 max-w-2xl text-base leading-7 ${isDark ? 'text-white/75' : 'text-[#191A23]/75'}`}>
+                {project.description || 'Add a project description from the admin dashboard.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {(project.stack || []).map((tech) => (
+              <span
+                key={tech}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${isDark ? 'border-white/20 text-white/80' : 'border-[#191A23]/20 text-[#191A23]/75'}`}
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* BOTTOM CONTENT */}
-        <div className="mt-4 md:mt-8 px-2 md:px-4 pb-3 md:pb-4 space-y-3 md:space-y-4">
-           <div className="flex items-center justify-between">
-              <h3 className="text-lg md:text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)] transition-colors">
-                {project.name}
-              </h3>
-              <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] opacity-40 group-hover:opacity-100 animate-pulse" />
-           </div>
-
-           <AnimatePresence>
-             {isHovered && (
-               <motion.div
-                 initial={{ height: 0, opacity: 0 }}
-                 animate={{ height: 'auto', opacity: 1 }}
-                 exit={{ height: 0, opacity: 0 }}
-                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                 className="overflow-hidden"
-               >
-                 <div className="pt-2 flex flex-wrap gap-1.5 md:gap-2">
-                    {project.stack?.map((tech) => (
-                      <span key={tech} className="px-2 md:px-4 py-1 md:py-2 rounded-full border border-[var(--border)] bg-[var(--bg-secondary)] text-[8px] md:text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
-                        {tech}
-                      </span>
-                    ))}
-                 </div>
-                 <p className="mt-3 md:mt-6 text-[11px] md:text-sm text-[var(--text-secondary)] font-medium leading-relaxed max-w-xl">
-                    {project.description}
-                 </p>
-               </motion.div>
-             )}
-           </AnimatePresence>
+        <div className={`relative min-h-[200px] overflow-hidden rounded-[22px] border ${isDark ? 'border-white/15 bg-white/5' : 'border-[#191A23]/15 bg-white/70'}`}>
+          {project.preview?.url ? (
+            <img
+              src={project.preview.url}
+              alt={project.name || 'Project preview'}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full min-h-[200px] items-center justify-center text-sm font-medium opacity-50">
+              Add preview in CMS
+            </div>
+          )}
         </div>
+      </div>
+
+      <a
+        href={project.live || '#'}
+        target="_blank"
+        rel="noreferrer"
+        className={`mt-6 inline-flex items-center gap-3 rounded-full text-sm font-semibold ${isDark ? 'text-[#B9FF66]' : 'text-[#191A23]'}`}
+      >
+        View Project
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full ${isDark ? 'bg-[#B9FF66] text-[#191A23]' : 'bg-[#191A23] text-[#B9FF66]'}`}>
+          <ArrowUpRight className="h-4 w-4" />
+        </span>
       </a>
-
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1, x: mousePos.x, y: mousePos.y }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 400, mass: 0.5 }}
-            className="absolute top-0 left-0 pointer-events-none z-[100] w-14 h-14 rounded-full bg-[var(--accent)] flex items-center justify-center text-[var(--bg-base)] shadow-[0_0_30px_var(--accent)]/50"
-            style={{ translateX: '-50%', translateY: '-50%' }}
-          >
-            <Eye className="w-6 h-6" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+    </motion.article>
   );
 }
 
 export default function ProjectsSection({ section, content }) {
   const projects = content?.projects || [];
+
   return (
     <SectionShell id={section?.id} eyebrow={section?.eyebrow} title={section?.title} panelInfo={section?.panelInfo}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 mt-10 md:mt-16 px-2 md:px-0 items-start">
+      <div className="mt-10 flex gap-8 overflow-x-auto pb-8 custom-scrollbar snap-x snap-mandatory">
         {projects.map((project, idx) => (
-          <ProjectCard key={idx} project={project} />
+          <div key={`${project.name}-${idx}`} className="min-w-[85vw] md:min-w-[60vw] lg:min-w-[50vw] snap-center shrink-0">
+            <ProjectCard project={project} index={idx} />
+          </div>
         ))}
       </div>
     </SectionShell>
