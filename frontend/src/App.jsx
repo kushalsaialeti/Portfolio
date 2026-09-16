@@ -10,7 +10,7 @@ import LeftControlPanel from './components/LeftControlPanel';
 import BrandIdentity from './components/BrandIdentity';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './admin/AdminLogin';
-import ThemeToggle from './components/ThemeToggle';
+import UnderPolishing from './pages/UnderPolishing';
 import { CmsProvider, CmsContext } from './context/CmsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 // import { Analytics } from "@vercel/analytics/react"
@@ -116,6 +116,7 @@ function LandingPage({ isLoaded }) {
                 items={cmsData?.siteSections}
                 activeId={activeSection}
                 setActiveId={navigateToSection}
+                profile={cmsData?.siteProfile}
             />
 
             <div className="flex flex-col w-full">
@@ -135,11 +136,50 @@ function LandingPage({ isLoaded }) {
                 })}
             </div>
 
-
-            <ThemeToggle />
-
             <div className="fixed inset-0 bg-[var(--accent)]/[0.01] pointer-events-none -z-10" />
         </main>
+    );
+}
+
+function AppRoutes({ isLoaded }) {
+    const { sections, fetchSection } = useContext(CmsContext);
+
+    useEffect(() => {
+        fetchSection('polishing');
+    }, []);
+
+    // Polishing mode is active by default unless explicitly set to false by admin in CMS
+    const isPolishingActive = sections.polishing?.isPolishingMode !== false;
+
+    return (
+        <Routes>
+            {/* ADMIN ROUTES: ALWAYS ACCESSIBLE */}
+            <Route path={ADMIN_LOGIN_PATH} element={<AdminLogin dashboardPath={ADMIN_DASHBOARD_PATH} />} />
+            <Route 
+                path={`${ADMIN_DASHBOARD_PATH}/*`}
+                element={
+                    <ProtectedRoute>
+                        <AdminDashboard />
+                    </ProtectedRoute>
+                } 
+            />
+
+            {/* CONDITIONAL PUBLIC ACCESS */}
+            {isPolishingActive ? (
+                <>
+                    {/* ONLY Under Polishing is visible to public */}
+                    <Route path="/" element={<UnderPolishing config={sections.polishing} />} />
+                    {/* All other routes & 404s redirect strictly to polishing page */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </>
+            ) : (
+                <>
+                    {/* FULL LIVE PORTFOLIO ACTIVE WHEN TOGGLED OFF BY ADMIN */}
+                    <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </>
+            )}
+        </Routes>
     );
 }
 
@@ -155,22 +195,11 @@ function App() {
         <ThemeProvider>
             <CmsProvider>
                 <Router>
-                    <Routes>
-                        <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
-                        <Route path={ADMIN_LOGIN_PATH} element={<AdminLogin dashboardPath={ADMIN_DASHBOARD_PATH} />} />
-                        <Route 
-                        path={`${ADMIN_DASHBOARD_PATH}/*`}
-                        element={
-                            <ProtectedRoute>
-                            <AdminDashboard />
-                            </ProtectedRoute>
-                        } 
-                        />
-                    </Routes>
+                    <AppRoutes isLoaded={isLoaded} />
                 </Router>
             </CmsProvider>
         </ThemeProvider>
-  );
+    );
 }
 
 export default App;

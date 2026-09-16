@@ -2,18 +2,31 @@ name: Portfolio Keep-Alive
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Every 5 minutes
-  workflow_dispatch: # Manual trigger
+    - cron: '*/10 * * * *' # Every 10 minutes (prevents Render 15min inactivity sleep)
+  workflow_dispatch: # Manual trigger anytime from GitHub Actions tab
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Ping Services
         run: |
-          echo "--- 🔄 PINGING CLOUD SERVICES ---"
-          # IMPORTANT: Replace these with your actual deployed domains!
-          curl -s -L https://kushalsaialeti.vercel.app > /dev/null
-          # Updated to Render
-          curl -s -L https://portfolio-4uyl.onrender.com/api > /dev/null
-          echo "--- ✅ PING SUCCESSFUL ---"
+          echo "=========================================="
+          echo "🔄 PINGING SERVICES: $(date -u)"
+          echo "=========================================="
+
+          echo "Ping Render Backend Health Endpoint..."
+          BACKEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 3 --max-time 45 -L https://portfolio-4uyl.onrender.com/health || echo "FAILED")
+          echo "Backend /health HTTP Status: $BACKEND_STATUS"
+
+          echo "Ping Vercel Frontend..."
+          FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --retry 2 --retry-delay 2 --max-time 20 -L https://kushalsaialeti.vercel.app || echo "FAILED")
+          echo "Frontend HTTP Status: $FRONTEND_STATUS"
+
+          if [ "$BACKEND_STATUS" = "200" ]; then
+            echo "✅ Render backend is awake and healthy!"
+          else
+            echo "⚠️ Backend responded with status: $BACKEND_STATUS"
+          fi
+          echo "=========================================="

@@ -1,114 +1,63 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { CmsContext } from '../context/CmsContext';
-import { Save, RefreshCw, Mail, Phone, Github, Linkedin, Instagram, FileText, MapPin, MessageSquare } from 'lucide-react';
-
-const CONTACT_DRAFT = {
-  introTitle: '',
-  introText: '',
-  formTitle: '',
-  submitLabel: '',
-  successMessage: '',
-  errorMessage: '',
-  placeholders: {
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  },
-};
-
-const PROFILE_DRAFT = {
-  name: '',
-  tagline: '',
-  subtitle: '',
-  email: '',
-  phone: '',
-  github: '',
-  linkedin: '',
-  instagram: '',
-  resume: '',
-  location: {
-    title: '',
-    text: '',
-    description: '',
-    query: '',
-  },
-};
-
-const profileFields = [
-  { key: 'email', label: 'Email', icon: Mail },
-  { key: 'phone', label: 'Phone', icon: Phone },
-  { key: 'github', label: 'GitHub URL', icon: Github },
-  { key: 'linkedin', label: 'LinkedIn URL', icon: Linkedin },
-  { key: 'instagram', label: 'Instagram URL', icon: Instagram },
-  { key: 'resume', label: 'Resume URL', icon: FileText },
-];
-
-const placeholderFields = [
-  { key: 'name', label: 'Name Placeholder' },
-  { key: 'email', label: 'Email Placeholder' },
-  { key: 'subject', label: 'Subject Placeholder' },
-  { key: 'message', label: 'Message Placeholder' },
-];
+import { Save, RefreshCw, Mail, Phone, MapPin, Send, AlertCircle, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function ContactEditor() {
   const { sections, fetchSection, updateSection } = useContext(CmsContext);
-  const [contactContent, setContactContent] = useState(CONTACT_DRAFT);
-  const [profile, setProfile] = useState(PROFILE_DRAFT);
+  const [contactData, setContactData] = useState({
+    introTitle: 'Contact Info',
+    introText: "Whether you have a question or just want to say hi, I'll try my best to get back to you!",
+    formTitle: 'Send a Message',
+    submitLabel: 'Send Message',
+    successMessage: 'Message sent successfully!',
+    errorMessage: 'Failed to send message. Please try again.',
+    placeholders: {
+      name: 'Your Name',
+      email: 'Your Email',
+      subject: 'Brief Subject',
+      message: 'Tell me more about your project...',
+    },
+  });
+
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     fetchSection('contact');
-    fetchSection('home');
   }, []);
 
   useEffect(() => {
-    setContactContent({
-      ...CONTACT_DRAFT,
-      ...(sections.contact || {}),
-      placeholders: {
-        ...CONTACT_DRAFT.placeholders,
-        ...(sections.contact?.placeholders || {}),
-      },
-    });
-  }, [sections.contact]);
-
-  useEffect(() => {
-    if (sections.home?.profile) {
-      setProfile({
-        ...PROFILE_DRAFT,
-        ...sections.home.profile,
-        location: {
-          ...PROFILE_DRAFT.location,
-          ...(sections.home.profile.location || {}),
+    if (sections.contact) {
+      setContactData({
+        introTitle: sections.contact.introTitle || 'Contact Info',
+        introText: sections.contact.introText || '',
+        formTitle: sections.contact.formTitle || 'Send a Message',
+        submitLabel: sections.contact.submitLabel || 'Send Message',
+        successMessage: sections.contact.successMessage || 'Message sent successfully!',
+        errorMessage: sections.contact.errorMessage || 'Failed to send message. Please try again.',
+        placeholders: {
+          name: sections.contact.placeholders?.name || 'Your Name',
+          email: sections.contact.placeholders?.email || 'Your Email',
+          subject: sections.contact.placeholders?.subject || 'Brief Subject',
+          message: sections.contact.placeholders?.message || 'Tell me more about your project...',
         },
       });
     }
-  }, [sections.home]);
+  }, [sections.contact]);
 
-  const handleContactChange = (field, value) => {
-    setContactContent((current) => ({ ...current, [field]: value }));
-  };
-
-  const handlePlaceholderChange = (field, value) => {
-    setContactContent((current) => ({
-      ...current,
-      placeholders: {
-        ...(current.placeholders || {}),
-        [field]: value,
-      },
+  const handleChange = (field, value) => {
+    setContactData((prev) => ({
+      ...prev,
+      [field]: value,
     }));
   };
 
-  const handleProfileChange = (field, value) => {
-    setProfile((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleLocationChange = (field, value) => {
-    setProfile((current) => ({
-      ...current,
-      location: {
-        ...(current.location || {}),
+  const handlePlaceholderChange = (field, value) => {
+    setContactData((prev) => ({
+      ...prev,
+      placeholders: {
+        ...prev.placeholders,
         [field]: value,
       },
     }));
@@ -116,161 +65,185 @@ export default function ContactEditor() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveMessage({ type: '', text: '' });
     try {
-      await Promise.all([
-        updateSection('contact', contactContent),
-        updateSection('home', {
-          ...(sections.home || {}),
-          profile,
-        }),
-      ]);
-      alert('Contact content committed.');
+      await updateSection('contact', contactData);
+      setSaveMessage({ type: 'success', text: 'Contact configuration saved successfully!' });
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 4000);
     } catch (error) {
-      alert('Contact save failed.');
+      console.error(error);
+      setSaveMessage({ type: 'error', text: 'Failed to save contact settings.' });
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-5xl mx-auto pb-24 text-white">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Contact Architect</h2>
-          <p className="text-[#A1A1A6] text-sm mt-1 uppercase tracking-widest font-medium">Control public contact details and form copy</p>
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+            <Mail className="w-7 h-7 text-[#27c93f]" />
+            Contact Section Settings
+          </h2>
+          <p className="text-white/60 text-xs sm:text-sm mt-1">
+            Configure contact card descriptions, form input placeholders, and automated feedback messages.
+          </p>
         </div>
+
         <button
+          type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="px-8 py-3 rounded-2xl bg-[#27c93f] text-black border border-[#27c93f] flex items-center gap-2 hover:brightness-110 transition-all font-black text-[10px] uppercase tracking-widest disabled:opacity-50"
+          className="px-6 py-2.5 rounded-xl bg-[#27c93f] text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_15px_rgba(39,201,63,0.3)] disabled:opacity-50 cursor-pointer"
         >
-          {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit Changes
+          {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span>Save</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-          <div className="flex items-center gap-3">
-            <MessageSquare className="w-5 h-5 text-[#27c93f]" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Form Content</h3>
-          </div>
+      {/* NOTIFICATION FEEDBACK */}
+      {saveMessage.text && (
+        <div
+          className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
+            saveMessage.type === 'success'
+              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              : 'bg-red-500/15 border border-red-500/40 text-red-400'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" />
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Intro Title</label>
-              <input
-                value={contactContent.introTitle || ''}
-                onChange={(e) => handleContactChange('introTitle', e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Form Title</label>
-              <input
-                value={contactContent.formTitle || ''}
-                onChange={(e) => handleContactChange('formTitle', e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-              />
-            </div>
-          </div>
+      {/* SECTION 1: INTRO TEXT */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-[#27c93f] flex items-center gap-2">
+          <span>01.</span> Contact Card Intro
+        </h3>
 
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Intro Text</label>
-            <textarea
-              value={contactContent.introText || ''}
-              rows={3}
-              onChange={(e) => handleContactChange('introText', e.target.value)}
-              className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none resize-none"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Card Heading</label>
+            <input
+              type="text"
+              value={contactData.introTitle}
+              onChange={(e) => handleChange('introTitle', e.target.value)}
+              placeholder="e.g. Contact Info"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Submit Button</label>
-              <input
-                value={contactContent.submitLabel || ''}
-                onChange={(e) => handleContactChange('submitLabel', e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Success Message</label>
-              <input
-                value={contactContent.successMessage || ''}
-                onChange={(e) => handleContactChange('successMessage', e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Error Message</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Form Title</label>
             <input
-              value={contactContent.errorMessage || ''}
-              onChange={(e) => handleContactChange('errorMessage', e.target.value)}
-              className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
+              type="text"
+              value={contactData.formTitle}
+              onChange={(e) => handleChange('formTitle', e.target.value)}
+              placeholder="e.g. Send a Message"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
             />
           </div>
         </div>
 
-        <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-          <div className="flex items-center gap-3">
-            <Mail className="w-5 h-5 text-[#27c93f]" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Contact Channels</h3>
-          </div>
-
-          <div className="grid gap-4">
-            {profileFields.map(({ key, label, icon: Icon }) => (
-              <div key={key} className="space-y-2">
-                <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1 flex items-center gap-2">
-                  <Icon className="w-3.5 h-3.5" /> {label}
-                </label>
-                <input
-                  value={profile[key] || ''}
-                  onChange={(e) => handleProfileChange(key, e.target.value)}
-                  className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-                />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-white/70">Intro Description</label>
+          <textarea
+            rows={2}
+            value={contactData.introText}
+            onChange={(e) => handleChange('introText', e.target.value)}
+            placeholder="Whether you have a question or just want to say hi..."
+            className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none resize-none leading-relaxed"
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-[#27c93f]" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Location</h3>
+      {/* SECTION 2: FORM PLACEHOLDERS & FEEDBACK */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-[#27c93f] flex items-center gap-2">
+          <span>02.</span> Form Placeholders & Status Messages
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Name Field Placeholder</label>
+            <input
+              type="text"
+              value={contactData.placeholders.name}
+              onChange={(e) => handlePlaceholderChange('name', e.target.value)}
+              placeholder="e.g. Your Name"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
           </div>
 
-          {['title', 'text', 'description', 'query'].map((field) => (
-            <div key={field} className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">{field}</label>
-              <input
-                value={profile.location?.[field] || ''}
-                onChange={(e) => handleLocationChange(field, e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-              />
-            </div>
-          ))}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Email Field Placeholder</label>
+            <input
+              type="text"
+              value={contactData.placeholders.email}
+              onChange={(e) => handlePlaceholderChange('email', e.target.value)}
+              placeholder="e.g. Your Email"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Subject Field Placeholder</label>
+            <input
+              type="text"
+              value={contactData.placeholders.subject}
+              onChange={(e) => handlePlaceholderChange('subject', e.target.value)}
+              placeholder="e.g. Brief Subject"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Submit Button Text</label>
+            <input
+              type="text"
+              value={contactData.submitLabel}
+              onChange={(e) => handleChange('submitLabel', e.target.value)}
+              placeholder="e.g. Send Message"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
         </div>
 
-        <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-          <div className="flex items-center gap-3">
-            <MessageSquare className="w-5 h-5 text-[#27c93f]" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Placeholders</h3>
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-white/70">Message Area Placeholder</label>
+          <input
+            type="text"
+            value={contactData.placeholders.message}
+            onChange={(e) => handlePlaceholderChange('message', e.target.value)}
+            placeholder="e.g. Tell me more about your project..."
+            className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-[#27c93f]">Success Message</label>
+            <input
+              type="text"
+              value={contactData.successMessage}
+              onChange={(e) => handleChange('successMessage', e.target.value)}
+              placeholder="Message sent successfully!"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-[#27c93f]/30 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
           </div>
 
-          {placeholderFields.map(({ key, label }) => (
-            <div key={key} className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">{label}</label>
-              <input
-                value={contactContent.placeholders?.[key] || ''}
-                onChange={(e) => handlePlaceholderChange(key, e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white transition-all focus:border-[#27c93f]/40 outline-none"
-              />
-            </div>
-          ))}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-red-400">Error Message</label>
+            <input
+              type="text"
+              value={contactData.errorMessage}
+              onChange={(e) => handleChange('errorMessage', e.target.value)}
+              placeholder="Failed to send message. Please try again."
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-red-500/30 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
         </div>
       </div>
     </div>

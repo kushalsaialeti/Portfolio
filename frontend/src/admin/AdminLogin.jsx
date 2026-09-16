@@ -1,23 +1,17 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CmsContext } from '../context/CmsContext';
-import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Zap, ArrowRight, RefreshCw, Key, Mail } from 'lucide-react';
 
 export default function AdminLogin({ dashboardPath = '/ks-atelier-console-94f7' }) {
   const { requestOtp, verifyOtp, isAuthenticated } = useContext(CmsContext);
-  const { setTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1); // 1: Email, 2: OTP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setTheme('light');
-  }, [setTheme]);
 
   useEffect(() => {
     if (isAuthenticated) navigate(dashboardPath);
@@ -103,9 +97,9 @@ export default function AdminLogin({ dashboardPath = '/ks-atelier-console-94f7' 
                   <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full py-4 rounded-2xl bg-white text-black font-black uppercase tracking-[0.3em] text-[10px] hover:bg-[#27c93f] transition-all flex items-center justify-center gap-3 group disabled:opacity-50"
+                    className="w-full py-4 rounded-2xl  bg-white/90 text-black font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white/90 transition-all flex items-center justify-center gap-3 group disabled:opacity-50"
                   >
-                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <>Request Secure Token <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>}
+                    {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <>Request Secure Token <ArrowRight className="w-4 h-4" /></>}
                   </button>
                 </motion.div>
               ) : (

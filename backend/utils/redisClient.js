@@ -9,25 +9,66 @@ let isConnected = false;
  */
 const initRedis = async () => {
   try {
+    let clientConfig;
+
+    if (process.env.REDIS_URL) {
+      let url = process.env.REDIS_URL.trim();
+      if (url.includes('upstash.io') && url.startsWith('redis://')) {
+        url = url.replace(/^redis:\/\//, 'rediss://');
+      }
+      clientConfig = { url };
+    } else if (process.env.REDIS_HOST) {
+      let rawHost = process.env.REDIS_HOST.trim();
+      if (rawHost.startsWith('redis://') || rawHost.startsWith('rediss://')) {
+        if (rawHost.includes('upstash.io') && rawHost.startsWith('redis://')) {
+          rawHost = rawHost.replace(/^redis:\/\//, 'rediss://');
+        }
+        clientConfig = { url: rawHost };
+      } else {
+        let host = rawHost.replace(/^https?:\/\//, '');
+        const port = Number(process.env.REDIS_PORT) || 6379;
+        const password = process.env.REDIS_PASSWORD ? process.env.REDIS_PASSWORD.trim() : '';
+        const isTls = host.includes('upstash.io') || process.env.REDIS_TLS === 'true' || (port === 6379 && host.includes('upstash'));
+
+        if (password) {
+          clientConfig = {
+            url: `${isTls ? 'rediss' : 'redis'}://default:${encodeURIComponent(password)}@${host}:${port}`,
+          };
+        } else {
+          clientConfig = {
+            url: `${isTls ? 'rediss' : 'redis'}://${host}:${port}`,
+          };
+        }
+      }
+    } else {
+      clientConfig = {
+        url: 'redis://localhost:6379',
+      };
+    }
+
     const client = redis.createClient({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
-      password: process.env.REDIS_PASSWORD || undefined,
+      ...clientConfig,
       socket: {
-        reconnectStrategy: (retries) => Math.min(retries * 50, 500),
+        ...(clientConfig.socket || {}),
+        reconnectStrategy: (retries) => {
+          if (retries > 3) {
+            console.warn('⚠️ Redis max reconnect attempts reached. Using in-memory cache.');
+            return false;
+          }
+          return Math.min(retries * 200, 1000);
+        },
         connectTimeout: 5000,
       },
-      // OPTIMIZATION: Enable offline queue to prevent blocking on Redis unavailability
-      enableOfflineQueue: true,
     });
 
     client.on('connect', () => {
-      console.log('✅ Redis connected');
+      console.log('✅ Redis connected successfully');
       isConnected = true;
+      redisClient = client;
     });
 
     client.on('error', (err) => {
-      console.warn('⚠️ Redis connection error:', err.message);
+      console.warn('⚠️ Redis connection error:', err.message || err);
       isConnected = false;
     });
 
@@ -39,9 +80,9 @@ const initRedis = async () => {
     redisClient = client;
     return client;
   } catch (err) {
-    console.warn('⚠️ Redis not available, using in-memory cache:', err.message);
-    // Return a mock Redis client for in-memory caching
-    return createMemoryCache();
+    console.warn('⚠️ Redis connection failed, using in-memory cache fallback:', err.message || err);
+    redisClient = createMemoryCache();
+    return redisClient;
   }
 };
 

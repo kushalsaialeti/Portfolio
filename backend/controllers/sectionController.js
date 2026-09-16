@@ -34,6 +34,9 @@ exports.getSection = async (req, res) => {
   }
 };
 
+const fs = require('fs');
+const path = require('path');
+
 exports.seedBaseline = async (req, res) => {
   try {
     const writes = Object.entries(defaultSections).map(([slug, content]) => (
@@ -47,9 +50,62 @@ exports.seedBaseline = async (req, res) => {
     const sections = await Promise.all(writes);
     await Promise.all(Object.keys(defaultSections).map((slug) => deleteCache(`section:${slug}`)));
 
-    res.json({ message: 'Five-section baseline seeded successfully.', sections });
+    res.json({ message: 'Baseline data synced successfully to database.', sections });
   } catch (error) {
     console.error('Baseline seed error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.saveBaseline = async (req, res) => {
+  try {
+    const sections = await Section.find({}).lean();
+    if (!sections || sections.length === 0) {
+      return res.status(400).json({ message: 'No sections found in database to save as baseline.' });
+    }
+
+    const newDefaultSections = { ...defaultSections };
+    sections.forEach((s) => {
+      newDefaultSections[s.slug] = s.content;
+      defaultSections[s.slug] = s.content; // Update runtime memory reference
+    });
+
+    const home = newDefaultSections.home || {};
+    const layout = newDefaultSections.layout || {};
+    const about = newDefaultSections.about || {};
+    const skills = newDefaultSections.skills || {};
+    const projects = newDefaultSections.projects || {};
+    const contact = newDefaultSections.contact || {};
+
+    const filePath = path.join(__dirname, '../data/defaultSections.js');
+    const fileContent = `const siteProfile = ${JSON.stringify(home.profile || {}, null, 2)};
+
+const siteSections = ${JSON.stringify(layout.siteSections || [], null, 2)};
+
+const aboutLines = ${JSON.stringify(about.aboutLines || [], null, 2)};
+
+const skills = ${JSON.stringify(skills.skills || {}, null, 2)};
+
+const projects = ${JSON.stringify(projects.projects || [], null, 2)};
+
+const contact = ${JSON.stringify(contact || {}, null, 2)};
+
+const defaultSections = ${JSON.stringify(newDefaultSections, null, 2)};
+
+module.exports = {
+  defaultSections,
+  coreSectionIds: ['home', 'about', 'projects', 'skills', 'contact'],
+};
+`;
+
+    await fs.promises.writeFile(filePath, fileContent, 'utf8');
+
+    res.json({
+      message: 'Current live CMS data saved into baseline successfully!',
+      defaultSections: newDefaultSections,
+    });
+  } catch (error) {
+    console.error('Save baseline error:', error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -9,11 +9,13 @@ const cmsRoutes = require('./routes/cmsRoutes');
 const sectionRoutes = require('./routes/sectionRoutes');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const { initRedis } = require('./utils/redisClient');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-// OPTIMIZATION: Increased from 5 to 30 minutes to reduce load on free tier
-const KEEP_ALIVE_INTERVAL_MS = 30 * 60 * 1000;
+// RENDER KEEP-ALIVE: Render spins down after 15 minutes of inactivity.
+// Pinging every 10 minutes prevents the container from ever sleeping while active.
+const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000;
 
 function pingUrl(url) {
   return new Promise((resolve) => {
@@ -28,7 +30,7 @@ function pingUrl(url) {
 
       const req = client.get(
         parsedUrl,
-        { timeout: 10000, headers: { 'User-Agent': 'portfolio-keep-alive' } },
+        { timeout: 15000, headers: { 'User-Agent': 'portfolio-keep-alive/2.0' } },
         (res) => {
           res.resume();
           resolve(res.statusCode >= 200 && res.statusCode < 500);
@@ -48,7 +50,6 @@ function pingUrl(url) {
 }
 
 function startKeepAliveJob() {
-  // Always enable in production if we have any URL configured
   const isEnabled = String(process.env.KEEP_ALIVE_ENABLED || 'true').toLowerCase() === 'true';
 
   if (!isEnabled) {
@@ -56,25 +57,22 @@ function startKeepAliveJob() {
     return;
   }
 
-  const frontendUrl = process.env.KEEP_ALIVE_FRONTEND_URL;
+  const frontendUrl = process.env.KEEP_ALIVE_FRONTEND_URL || 'https://kushalsaialeti.vercel.app';
   
-  // Try to auto-detect the backend URL from common providers (Render, Railway, or Manual)
-  const backendUrl = process.env.KEEP_ALIVE_BACKEND_URL || 
+  // Auto-detect or default to the Render deployment /health endpoint
+  const rawBackend = process.env.KEEP_ALIVE_BACKEND_URL || 
                      process.env.RENDER_EXTERNAL_URL ||
-                     (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/api` : null) ||
-                     process.env.RAILWAY_STATIC_URL || 
-                     (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/api` : null) ||
-                     process.env.PORTFOLIO_URL;
+                     (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : null) ||
+                     'https://portfolio-4uyl.onrender.com';
+
+  const backendUrl = rawBackend.endsWith('/health') 
+    ? rawBackend 
+    : `${rawBackend.replace(/\/api\/?$/, '').replace(/\/$/, '')}/health`;
 
   const targets = [
     { label: 'Frontend', url: frontendUrl },
-    { label: 'Backend', url: backendUrl }
+    { label: 'Backend Health', url: backendUrl }
   ].filter((target) => Boolean(target.url));
-
-  if (targets.length === 0) {
-    console.log('Keep-alive job enabled but no URLs are configured.');
-    return;
-  }
 
   const runPings = async () => {
     await Promise.all(
@@ -130,8 +128,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio
   socketTimeoutMS: 5000,
   maxPoolSize: 5, // OPTIMIZATION: Limit connections on free tier
 })
-  .then(() => {
+  .then(async () => {
     console.log('MongoDB Connected successfully.');
+    await initRedis();
     startKeepAliveJob();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

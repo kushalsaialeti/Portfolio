@@ -1,24 +1,34 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { CmsContext } from '../context/CmsContext';
-import { Save, RefreshCw, User, LayoutTemplate, Image as ImageIcon, Sparkles, Plus, MapPin, Briefcase, Globe } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Save, RefreshCw, User, Image as ImageIcon, MapPin, Plus, Trash2, Tag, Link2, Sparkles, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ImageUploader from './components/ImageUploader';
 
 export default function HomeEditor() {
   const { sections, fetchSection, updateSection, uploadMedia, replaceMedia } = useContext(CmsContext);
   const [localData, setLocalData] = useState({
-    profile: { 
-      name: '', 
-      tagline: '', 
+    profile: {
+      name: '',
+      tagline: '',
+      subtitle: '',
+      email: '',
+      phone: '',
+      github: '',
+      linkedin: '',
+      instagram: '',
+      resume: '',
+      stackLabels: ['MERN', 'REACT NATIVE', 'VIBE CODING'],
+      statusWords: ['WORK', 'COLLABORATE'],
       portrait: { url: '', public_id: '' },
-      activelyBuilding: { title: '', text: '', description: '', stack: [] },
-      location: { title: '', text: '', description: '', query: '' }
+      location: { title: 'Current Location', text: '', description: '', query: '' },
     },
     gallery: [],
-    statusWords: [],
-    stack: []
   });
+
+  const [newStackTag, setNewStackTag] = useState('');
+  const [newStatusWord, setNewStatusWord] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     fetchSection('home');
@@ -26,313 +36,474 @@ export default function HomeEditor() {
 
   useEffect(() => {
     if (sections.home) {
-      setLocalData(sections.home);
+      setLocalData({
+        profile: {
+          name: sections.home.profile?.name || '',
+          tagline: sections.home.profile?.tagline || '',
+          subtitle: sections.home.profile?.subtitle || '',
+          email: sections.home.profile?.email || '',
+          phone: sections.home.profile?.phone || '',
+          github: sections.home.profile?.github || '',
+          linkedin: sections.home.profile?.linkedin || '',
+          instagram: sections.home.profile?.instagram || '',
+          resume: sections.home.profile?.resume || '',
+          stackLabels: sections.home.profile?.stackLabels || ['MERN', 'REACT NATIVE', 'VIBE CODING'],
+          statusWords: sections.home.profile?.statusWords || ['WORK', 'COLLABORATE'],
+          portrait: sections.home.profile?.portrait || { url: '', public_id: '' },
+          location: sections.home.profile?.location || { title: 'Current Location', text: '', description: '', query: '' },
+        },
+        gallery: sections.home.gallery || [],
+      });
     }
   }, [sections.home]);
 
+  const handleProfileChange = (field, value) => {
+    setLocalData((prev) => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleLocationChange = (field, value) => {
+    setLocalData((prev) => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        location: {
+          ...prev.profile.location,
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const handlePortraitUpload = async (file) => {
+    const oldPublicId = localData.profile.portrait?.public_id;
+    if (oldPublicId) {
+      return await replaceMedia(file, oldPublicId);
+    }
+    return await uploadMedia(file);
+  };
+
+  const handleAddGalleryImage = async (file) => {
+    const result = await uploadMedia(file);
+    setLocalData((prev) => ({
+      ...prev,
+      gallery: [...(prev.gallery || []), { url: result.url, public_id: result.public_id }],
+    }));
+    return result;
+  };
+
+  const handleRemoveGalleryImage = (index) => {
+    setLocalData((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleAddStackTag = (e) => {
+    e.preventDefault();
+    if (!newStackTag.trim()) return;
+    const tag = newStackTag.trim().toUpperCase();
+    if (!localData.profile.stackLabels?.includes(tag)) {
+      handleProfileChange('stackLabels', [...(localData.profile.stackLabels || []), tag]);
+    }
+    setNewStackTag('');
+  };
+
+  const handleRemoveStackTag = (tagToRemove) => {
+    handleProfileChange(
+      'stackLabels',
+      (localData.profile.stackLabels || []).filter((tag) => tag !== tagToRemove)
+    );
+  };
+
+  const handleAddStatusWord = (e) => {
+    e.preventDefault();
+    if (!newStatusWord.trim()) return;
+    const word = newStatusWord.trim().toUpperCase();
+    if (!localData.profile.statusWords?.includes(word)) {
+      handleProfileChange('statusWords', [...(localData.profile.statusWords || []), word]);
+    }
+    setNewStatusWord('');
+  };
+
+  const handleRemoveStatusWord = (wordToRemove) => {
+    handleProfileChange(
+      'statusWords',
+      (localData.profile.statusWords || []).filter((w) => w !== wordToRemove)
+    );
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveMessage({ type: '', text: '' });
     try {
       await updateSection('home', localData);
-      alert('Landing Page configuration committed.');
+      setSaveMessage({ type: 'success', text: 'Hero & profile configuration saved successfully!' });
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 4000);
     } catch (error) {
       console.error(error);
-      alert('Commit failed.');
+      setSaveMessage({ type: 'error', text: 'Failed to save changes. Please check console/network.' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleChange = (path, value) => {
-    const keys = path.split('.');
-    const updated = { ...localData };
-    let curr = updated;
-    for (let i = 0; i < keys.length - 1; i++) {
-        curr = (curr[keys[i]] = { ...curr[keys[i]] });
-    }
-    curr[keys[keys.length - 1]] = value;
-    setLocalData(updated);
-  };
-
-  const handlePortraitChange = async (file) => {
-    setIsUploading(true);
-    const oldPublicId = localData.profile?.portrait?.public_id;
-    try {
-      let result;
-      if (oldPublicId) {
-        result = await replaceMedia(file, oldPublicId);
-      } else {
-        result = await uploadMedia(file);
-      }
-      handleChange('profile.portrait', { url: result.url, public_id: result.public_id });
-    } catch (error) {
-      alert('Upload failed.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleAddGalleryImg = async (file) => {
-    setIsUploading(true);
-    try {
-      const result = await uploadMedia(file);
-      const newGallery = [...(localData.gallery || []), { url: result.url, public_id: result.public_id }];
-      handleChange('gallery', newGallery);
-    } catch (error) {
-      alert('Upload failed.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleRemoveGalleryImg = (idx) => {
-    const newGallery = localData.gallery.filter((_, i) => i !== idx);
-    handleChange('gallery', newGallery);
-  };
-
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-5xl mx-auto pb-24 text-white">
+      {/* HEADER BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Hero Architect</h2>
-          <p className="text-[#A1A1A6] text-sm mt-1 uppercase tracking-widest font-medium">Coordinate your core identity & availability</p>
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+            <User className="w-7 h-7 text-[#27c93f]" />
+            Hero & Identity Editor
+          </h2>
+          <p className="text-white/60 text-xs sm:text-sm mt-1">
+            Manage your headline, portrait, animated status words, location, and social links.
+          </p>
         </div>
-        <button 
+
+        <button
+          type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="px-8 py-3 rounded-2xl bg-[#27c93f] text-black border border-[#27c93f] flex items-center gap-2 hover:brightness-110 transition-all font-black text-[10px] uppercase tracking-widest disabled:opacity-50"
+          className="self-start sm:self-auto px-6 py-3 rounded-xl bg-[#27c93f] text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_15px_rgba(39,201,63,0.3)] disabled:opacity-50 cursor-pointer"
         >
-          {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit Changes
+          {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span>Save Changes</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* IDENTITY BLOCK */}
-        <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-8">
-          <div className="flex items-center gap-3 mb-2">
-            <User className="w-5 h-5 text-[#27c93f]" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Identity Configuration</h3>
-          </div>
+      {/* NOTIFICATION FEEDBACK */}
+      {saveMessage.text && (
+        <div
+          className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
+            saveMessage.type === 'success'
+              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              : 'bg-red-500/15 border border-red-500/40 text-red-400'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" />
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
 
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-             <div className="relative group">
-                <div className="w-32 h-32 rounded-[28px] bg-black/40 border border-white/5 overflow-hidden relative">
-                   <img 
-                      src={localData.profile?.portrait?.url || "/images/portrait.png"} 
-                      className={`w-full h-full object-cover transition-all duration-700 ${isUploading ? 'opacity-20 blur-sm' : 'grayscale group-hover:grayscale-0'}`}
-                      alt="Identity Portrait" 
-                   />
-                   {isUploading && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                         <RefreshCw className="w-6 h-6 text-[#27c93f] animate-spin" />
-                      </div>
-                   )}
-                   <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/60 flex items-center justify-center transition-all">
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        onChange={(e) => handlePortraitChange(e.target.files[0])}
-                      />
-                      <ImageIcon className="w-6 h-6 text-white" />
-                   </label>
-                </div>
-                <div className="absolute -inset-4 bg-[#27c93f]/[0.03] blur-2xl -z-10 rounded-full" />
-             </div>
+      {/* SECTION 1: CORE IDENTITY */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-[#27c93f] flex items-center gap-2">
+          <span>01.</span> Core Profile Details
+        </h3>
 
-             <div className="flex-grow space-y-4 w-full">
-                <div className="space-y-2">
-                   <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Primary Display Name</label>
-                   <input 
-                     value={localData.profile?.name || ''}
-                     onChange={(e) => handleChange('profile.name', e.target.value)}
-                     className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none font-medium text-xs uppercase tracking-widest"
-                   />
-                </div>
-             </div>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Impact Tagline</label>
-            <textarea 
-              value={localData.profile?.tagline || ''}
-              rows={3}
-              onChange={(e) => handleChange('profile.tagline', e.target.value)}
-              className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none resize-none font-medium leading-relaxed"
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Full Name</label>
+            <input
+              type="text"
+              value={localData.profile.name}
+              onChange={(e) => handleProfileChange('name', e.target.value)}
+              placeholder="e.g. Kushal Sai Aleti"
+              className="w-full px-4 py-3 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-sm focus:border-[#27c93f] outline-none"
             />
           </div>
 
-          <div className="pt-4 space-y-4">
-             <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1 flex items-center gap-2">
-               <ImageIcon className="w-3.5 h-3.5" /> Slideshow Gallery
-             </label>
-             <div className="grid grid-cols-4 gap-3">
-                {localData.gallery?.map((img, idx) => (
-                   <div key={idx} className="relative group aspect-square rounded-xl bg-black/30 border border-white/5 overflow-hidden font-black">
-                      <img src={img.url} className="w-full h-full object-cover" alt="Gallery" />
-                      <button 
-                        onClick={() => handleRemoveGalleryImg(idx)}
-                        className="absolute inset-0 bg-red-500/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px] font-black uppercase tracking-widest"
-                      >
-                        Delete
-                      </button>
-                   </div>
-                ))}
-                <label className="aspect-square rounded-xl bg-white/[0.03] border border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/[0.05] transition-all">
-                   <input type="file" className="hidden" onChange={(e) => handleAddGalleryImg(e.target.files[0])} />
-                   <div className="p-2 rounded-lg bg-white/5 text-white/20">
-                      <Plus className="w-4 h-4" />
-                   </div>
-                </label>
-             </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Tagline / Headline</label>
+            <input
+              type="text"
+              value={localData.profile.tagline}
+              onChange={(e) => handleProfileChange('tagline', e.target.value)}
+              placeholder="e.g. MERN developer building crisp web experiences."
+              className="w-full px-4 py-3 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-sm focus:border-[#27c93f] outline-none"
+            />
           </div>
         </div>
 
-        {/* TECH STACK & STATUS BLOCK */}
-        <div className="space-y-8">
-          <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <LayoutTemplate className="w-5 h-5 text-[#27c93f]" />
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Interactive Navigation</h3>
-            </div>
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-white/70">Subtitle / Bio Teaser</label>
+          <textarea
+            rows={2}
+            value={localData.profile.subtitle}
+            onChange={(e) => handleProfileChange('subtitle', e.target.value)}
+            placeholder="e.g. React, Node.js, product-focused UI/UX, AI-assisted workflows."
+            className="w-full px-4 py-3 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-sm focus:border-[#27c93f] outline-none resize-none"
+          />
+        </div>
+      </div>
 
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Active Tech Stack Buttons (Comma Separated)</label>
-              <input 
-                value={localData.profile?.stackLabels?.join(', ') || ''}
-                onChange={(e) => handleChange('profile.stackLabels', e.target.value.split(',').map(s => s.trim()))}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none font-medium text-xs uppercase tracking-widest"
-              />
-            </div>
+      {/* SECTION 2: PORTRAIT & CAROUSEL IMAGES */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-[#27c93f] flex items-center gap-2">
+          <span>02.</span> Portrait & Carousel Media
+        </h3>
 
-            <div className="p-6 rounded-2xl bg-black/40 border border-white/5">
-              <p className="text-[10px] text-white/40 leading-relaxed font-black uppercase tracking-widest mb-4">Live Preview</p>
-              <div className="flex flex-wrap gap-2">
-                  {localData.profile?.stackLabels?.map((s, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-lg border border-[#27c93f]/20 bg-[#27c93f]/10 text-[#27c93f] text-[10px] font-black tracking-widest uppercase">
-                      {s}
-                    </span>
-                  ))}
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Main Portrait */}
+          <div className="space-y-3">
+            <ImageUploader
+              label="Primary Portrait Image"
+              sublabel="Hero face & avatar across the site"
+              value={localData.profile.portrait}
+              onChange={(val) => handleProfileChange('portrait', typeof val === 'object' ? val : { url: val, public_id: '' })}
+              onUpload={handlePortraitUpload}
+              aspectRatio="portrait"
+            />
           </div>
 
-          <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="w-5 h-5 text-[#27c93f]" />
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Status Beacon Phrases</h3>
+          {/* Gallery Carousel Images */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-white/80">
+                Rotating Hero Gallery ({localData.gallery?.length || 0} images)
+              </label>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Availability Words (Comma Separated)</label>
-              <input 
-                value={localData.profile?.statusWords?.join(', ') || 'WORK, COLLABORATE'}
-                onChange={(e) => handleChange('profile.statusWords', e.target.value.split(',').map(s => s.trim().toUpperCase()))}
-                className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none font-black tracking-widest text-xs uppercase"
+            {/* Thumbnails List */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {localData.gallery?.map((img, idx) => (
+                <div key={idx} className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/40 aspect-square">
+                  <img src={img.url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveGalleryImage(idx)}
+                    className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                    title="Remove Image"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Image to Gallery */}
+            <div className="pt-2">
+              <ImageUploader
+                label="Add Image to Hero Gallery"
+                sublabel="Upload an additional image for the auto-rotating carousel"
+                value=""
+                onChange={() => {}}
+                onUpload={handleAddGalleryImage}
+                aspectRatio="square"
               />
-              <p className="text-[8px] text-white/20 uppercase tracking-widest mt-2 px-1">Words that cycle in the 'OPEN TO...' typing animation</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* HERO METADATA ISLANDS EDITOR */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-         {/* ACTIVELY BUILDING */}
-         <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-               <Briefcase className="w-5 h-5 text-[#27c93f]" />
-               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Building Configuration</h3>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-               <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Island Eyebrow</label>
-                  <input 
-                    value={localData.profile?.activelyBuilding?.title || ''}
-                    placeholder="Actively Building"
-                    onChange={(e) => handleChange('profile.activelyBuilding.title', e.target.value)}
-                    className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-[10px] uppercase font-black tracking-widest transition-all focus:border-[#27c93f]/40 outline-none"
-                  />
-               </div>
-               <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Primary Text (Overrides Project Name)</label>
-                  <input 
-                    value={localData.profile?.activelyBuilding?.text || ''}
-                    onChange={(e) => handleChange('profile.activelyBuilding.text', e.target.value)}
-                    className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-[10px] uppercase font-black tracking-widest transition-all focus:border-[#27c93f]/40 outline-none"
-                  />
-               </div>
+      {/* SECTION 3: ANIMATED STATUS WORDS & STACK LABELS */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-[#27c93f] flex items-center gap-2">
+          <span>03.</span> Interactive Pills & Typing Words
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Status Typing Words */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-white/80">
+                "Open To" Typing Words
+              </label>
+              <p className="text-[11px] text-white/50 mt-0.5">
+                Words that cycle in the hero box ("OPEN TO WORK", "OPEN TO COLLABORATE", etc.)
+              </p>
             </div>
 
-            <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Description Hint</label>
-               <textarea 
-                 value={localData.profile?.activelyBuilding?.description || ''}
-                 rows={2}
-                 onChange={(e) => handleChange('profile.activelyBuilding.description', e.target.value)}
-                 className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-xs font-medium transition-all focus:border-[#27c93f]/40 outline-none resize-none"
-               />
+            <div className="flex flex-wrap gap-2 min-h-[44px] p-3 rounded-xl bg-[#1c1d27] border border-white/10">
+              {localData.profile.statusWords?.map((word) => (
+                <span
+                  key={word}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#27c93f]/15 border border-[#27c93f]/30 text-[#27c93f] text-xs font-bold uppercase tracking-wider"
+                >
+                  {word}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStatusWord(word)}
+                    className="hover:text-red-400"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
             </div>
 
-            <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Fallback Stack Tags (Comma Separated)</label>
-               <input 
-                 value={localData.profile?.activelyBuilding?.stack?.join(', ') || ''}
-                 onChange={(e) => handleChange('profile.activelyBuilding.stack', e.target.value.split(',').map(s => s.trim()))}
-                 className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-[10px] uppercase tracking-widest font-black transition-all focus:border-[#27c93f]/40 outline-none"
-               />
-            </div>
-         </div>
+            <form onSubmit={handleAddStatusWord} className="flex gap-2">
+              <input
+                type="text"
+                value={newStatusWord}
+                onChange={(e) => setNewStatusWord(e.target.value)}
+                placeholder="e.g. FULL-TIME"
+                className="flex-1 px-4 py-2 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs uppercase tracking-wider focus:border-[#27c93f] outline-none"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-[#27c93f] hover:text-black font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add
+              </button>
+            </form>
+          </div>
 
-         {/* LOCATION BLOCK */}
-         <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-               <MapPin className="w-5 h-5 text-[#27c93f]" />
-               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Location Configuration</h3>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-               <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Eyebrow</label>
-                  <input 
-                    value={localData.profile?.location?.title || ''}
-                    placeholder="Current Location"
-                    onChange={(e) => handleChange('profile.location.title', e.target.value)}
-                    className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-[10px] uppercase font-black tracking-widest transition-all focus:border-[#27c93f]/40 outline-none"
-                  />
-               </div>
-               <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Location Label</label>
-                  <input 
-                    value={localData.profile?.location?.text || ''}
-                    placeholder="Bhimavaram, SRKR"
-                    onChange={(e) => handleChange('profile.location.text', e.target.value)}
-                    className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-[10px] uppercase font-black tracking-widest transition-all focus:border-[#27c93f]/40 outline-none"
-                  />
-               </div>
+          {/* Hero Stack Badges */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-white/80">
+                Hero Stack Badges
+              </label>
+              <p className="text-[11px] text-white/50 mt-0.5">
+                Buttons displayed right below your hero name (e.g. "MERN", "REACT NATIVE")
+              </p>
             </div>
 
-            <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Map Query / Description</label>
-               <input 
-                 value={localData.profile?.location?.description || ''}
-                 onChange={(e) => handleChange('profile.location.description', e.target.value)}
-                 className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-xs font-medium transition-all focus:border-[#27c93f]/40 outline-none"
-               />
+            <div className="flex flex-wrap gap-2 min-h-[44px] p-3 rounded-xl bg-[#1c1d27] border border-white/10">
+              {localData.profile.stackLabels?.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white text-xs font-bold uppercase tracking-wider"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStackTag(tag)}
+                    className="hover:text-red-400"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
             </div>
-            
-            <div className="space-y-2">
-               <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1 flex items-center gap-2">
-                  <Globe className="w-3 h-3" /> Maps Search Query
-               </label>
-               <input 
-                 value={localData.profile?.location?.query || ''}
-                 placeholder="SRKR Engineering College, Bhimavaram"
-                 onChange={(e) => handleChange('profile.location.query', e.target.value)}
-                 className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white text-[10px] uppercase tracking-widest font-black transition-all focus:border-[#27c93f]/40 outline-none"
-               />
-            </div>
-         </div>
+
+            <form onSubmit={handleAddStackTag} className="flex gap-2">
+              <input
+                type="text"
+                value={newStackTag}
+                onChange={(e) => setNewStackTag(e.target.value)}
+                placeholder="e.g. NEXT.JS"
+                className="flex-1 px-4 py-2 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs uppercase tracking-wider focus:border-[#27c93f] outline-none"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-[#27c93f] hover:text-black font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 4: LOCATION & CONTACT / SOCIAL LINKS */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-[#27c93f] flex items-center gap-2">
+          <span>04.</span> Location & Social Links
+        </h3>
+
+        {/* Location Subcard */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Location Card Title</label>
+            <input
+              type="text"
+              value={localData.profile.location?.title || ''}
+              onChange={(e) => handleLocationChange('title', e.target.value)}
+              placeholder="e.g. Current Location"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Location Display Text</label>
+            <input
+              type="text"
+              value={localData.profile.location?.text || ''}
+              onChange={(e) => handleLocationChange('text', e.target.value)}
+              placeholder="e.g. Bhimavaram, SRKR campus"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Google Maps Search Query</label>
+            <input
+              type="text"
+              value={localData.profile.location?.query || ''}
+              onChange={(e) => handleLocationChange('query', e.target.value)}
+              placeholder="e.g. SRKR Engineering College, Bhimavaram"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Links Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Resume Link (URL / PDF)</label>
+            <input
+              type="url"
+              value={localData.profile.resume || ''}
+              onChange={(e) => handleProfileChange('resume', e.target.value)}
+              placeholder="https://drive.google.com/..."
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Email Address</label>
+            <input
+              type="email"
+              value={localData.profile.email || ''}
+              onChange={(e) => handleProfileChange('email', e.target.value)}
+              placeholder="your-email@gmail.com"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Phone Number</label>
+            <input
+              type="text"
+              value={localData.profile.phone || ''}
+              onChange={(e) => handleProfileChange('phone', e.target.value)}
+              placeholder="+91 9876543210"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">GitHub Profile URL</label>
+            <input
+              type="url"
+              value={localData.profile.github || ''}
+              onChange={(e) => handleProfileChange('github', e.target.value)}
+              placeholder="https://github.com/..."
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">LinkedIn Profile URL</label>
+            <input
+              type="url"
+              value={localData.profile.linkedin || ''}
+              onChange={(e) => handleProfileChange('linkedin', e.target.value)}
+              placeholder="https://linkedin.com/in/..."
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-white/70">Instagram Profile URL</label>
+            <input
+              type="url"
+              value={localData.profile.instagram || ''}
+              onChange={(e) => handleProfileChange('instagram', e.target.value)}
+              placeholder="https://instagram.com/..."
+              className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -2,20 +2,20 @@
 
 @layer base {
   :root {
-    --bg-base: #FFFFFF;
-    --bg-secondary: #F3F3F3;
-    --surface: #F3F3F3;
-    --cards: rgba(255, 255, 255, 0.95);
-    --text-primary: #191A23;
-    --text-secondary: rgba(25, 26, 35, 0.68);
-    --accent: #B9FF66;
-    --border: rgba(25, 26, 35, 0.18);
-    --glass-bg: rgba(255, 255, 255, 0.85);
+    --bg-base: #191A23;
+    --bg-secondary: #101119;
+    --surface: #1C1C1E;
+    --cards: rgba(28, 28, 30, 0.8);
+    --text-primary: #FFFFFF;
+    --text-secondary: #8E8E93;
+    --accent: #27c93f;
+    --border: rgba(255, 255, 255, 0.12);
+    --glass-bg: rgba(0, 0, 0, 0.75);
     --apple-curve: cubic-bezier(0.22, 1, 0.36, 1);
     
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.03);
-    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 30px 60px rgba(0, 0, 0, 0.5);
   }
 
   /* DARK THEME (INSPIRATION: APPLE DARK UI) */
@@ -26,7 +26,7 @@
     --cards: rgba(28, 28, 30, 0.8);
     --text-primary: #FFFFFF;
     --text-secondary: #8E8E93;
-    --accent: #B9FF66;
+    --accent: #27c93f;
     --border: rgba(255, 255, 255, 0.12);
     --glass-bg: rgba(0, 0, 0, 0.75);
     
@@ -68,68 +68,33 @@
   }
 }
 
-.admin-surface,
-.admin-surface input,
-.admin-surface textarea,
-.admin-surface select,
-.admin-surface button {
+.admin-surface {
   font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.admin-surface .text-white,
-.admin-surface .text-\[\#A1A1A6\] {
-  color: #191A23;
-}
-
-.admin-surface .text-\[\#27c93f\],
-.admin-surface .text-white\/60,
-.admin-surface .text-white\/40,
-.admin-surface .text-white\/30 {
-  color: rgba(25, 26, 35, 0.72);
-}
-
-.admin-surface .bg-white\/\[0\.02\],
-.admin-surface .bg-white\/\[0\.03\],
-.admin-surface .bg-white\/5,
-.admin-surface .bg-black\/20,
-.admin-surface .bg-black\/30,
-.admin-surface .bg-black\/40 {
-  background-color: #F3F3F3;
-}
-
-.admin-surface .border-white\/5,
-.admin-surface .border-white\/10 {
-  border-color: #191A23;
+  background-color: #0f1015;
+  color: #FFFFFF;
 }
 
 .admin-surface input,
 .admin-surface textarea,
 .admin-surface select {
-  background: #ffffff;
-  border: 1px solid #191A23;
-  color: #191A23;
-  box-shadow: 0 3px 0 #191A23;
+  background-color: #191A23;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.admin-surface input:focus,
+.admin-surface textarea:focus,
+.admin-surface select:focus {
+  border-color: #27c93f;
+  box-shadow: 0 0 0 3px rgba(39, 201, 63, 0.15);
+  outline: none;
 }
 
 .admin-surface input::placeholder,
 .admin-surface textarea::placeholder {
-  color: rgba(25, 26, 35, 0.35);
-}
-
-.admin-surface .bg-\[\#27c93f\],
-.admin-surface .bg-\[var\(--accent\)\] {
-  background-color: #B9FF66;
-}
-
-.admin-surface .border-\[\#27c93f\],
-.admin-surface .border-\[var\(--accent\)\] {
-  border-color: #191A23;
-}
-
-.admin-surface .rounded-\[40px\],
-.admin-surface .rounded-\[32px\],
-.admin-surface .rounded-3xl {
-  border-radius: 28px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 @layer utilities {
@@ -186,4 +151,26 @@ html.lenis {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* GLOBAL BUTTON TEXT COLOR OVERRIDES */
+button.bg-\[\#191A23\], 
+button.bg-black,
+.bg-\[\#191A23\] button, 
+.bg-black button {
+  color: var(--accent) !important;
+}
+
+/* Secondary buttons on white/surface backgrounds */
+button.bg-white,
+button.bg-\[\#F3F3F3\],
+button.bg-\[var\(--surface\)\] {
+  color: var(--text-primary) !important;
+}
+
+/* Primary buttons on white/surface backgrounds (typically have accent borders or are explicitly marked) */
+button.bg-white.text-\[var\(--accent\)\],
+button.bg-\[\#F3F3F3\].text-\[var\(--accent\)\],
+button.bg-\[var\(--surface\)\].text-\[var\(--accent\)\] {
+  color: var(--accent) !important;
 }

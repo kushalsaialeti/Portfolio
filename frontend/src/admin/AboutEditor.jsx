@@ -1,12 +1,13 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { CmsContext } from '../context/CmsContext';
-import { Save, RefreshCw, Layers, Plus, Trash2 } from 'lucide-react';
+import { Save, RefreshCw, FileText, Plus, Trash2, ArrowUp, ArrowDown, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AboutEditor() {
   const { sections, fetchSection, updateSection } = useContext(CmsContext);
-  const [localLines, setLocalLines] = useState([]);
+  const [aboutLines, setAboutLines] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     fetchSection('about');
@@ -14,88 +15,167 @@ export default function AboutEditor() {
 
   useEffect(() => {
     if (sections.about) {
-      setLocalLines(sections.about.aboutLines || []);
+      setAboutLines(sections.about.aboutLines || []);
     }
   }, [sections.about]);
 
+  const handleAddLine = () => {
+    setAboutLines([...aboutLines, '']);
+  };
+
+  const handleRemoveLine = (index) => {
+    setAboutLines(aboutLines.filter((_, i) => i !== index));
+  };
+
+  const handleChange = (index, value) => {
+    const updated = [...aboutLines];
+    updated[index] = value;
+    setAboutLines(updated);
+  };
+
+  const handleMove = (index, direction) => {
+    const newIdx = index + direction;
+    if (newIdx < 0 || newIdx >= aboutLines.length) return;
+    const updated = [...aboutLines];
+    const temp = updated[index];
+    updated[index] = updated[newIdx];
+    updated[newIdx] = temp;
+    setAboutLines(updated);
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveMessage({ type: '', text: '' });
     try {
-      await updateSection('about', { aboutLines: localLines });
-      alert('Professional narrative updated.');
+      await updateSection('about', { aboutLines });
+      setSaveMessage({ type: 'success', text: 'About section narrative saved successfully!' });
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 4000);
     } catch (error) {
-      alert('Commit failed.');
+      console.error(error);
+      setSaveMessage({ type: 'error', text: 'Failed to save changes.' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleAddLine = () => {
-    setLocalLines([...localLines, ""]);
-  };
-
-  const handleRemoveLine = (index) => {
-    setLocalLines(localLines.filter((_, i) => i !== index));
-  };
-
-  const handleChange = (index, value) => {
-    const updated = [...localLines];
-    updated[index] = value;
-    setLocalLines(updated);
-  };
-
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-5xl mx-auto pb-24 text-white">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Narrative Architect</h2>
-          <p className="text-[#A1A1A6] text-sm mt-1 uppercase tracking-widest font-medium">Control your professional story & story-telling</p>
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+            <FileText className="w-7 h-7 text-[#27c93f]" />
+            About Section Editor
+          </h2>
+          <p className="text-white/60 text-xs sm:text-sm mt-1">
+            Edit your story paragraphs, background, and mindset displayed in the About section.
+          </p>
         </div>
-        <div className="flex gap-4">
-          <button 
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
             onClick={handleAddLine}
-            className="px-6 py-3 rounded-2xl bg-white/[0.03] border border-white/10 text-[#27c93f] flex items-center gap-2 hover:bg-[#27c93f]/10 transition-all font-black text-[10px] uppercase tracking-widest"
+            className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/15 text-[#27c93f] font-black text-xs uppercase tracking-wider hover:bg-[#27c93f]/10 transition-all flex items-center gap-2 cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add Narrative
+            <Plus className="w-4 h-4" />
+            <span>Add Paragraph</span>
           </button>
-          <button 
+
+          <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="px-8 py-3 rounded-2xl bg-[#27c93f] text-black border border-[#27c93f] flex items-center gap-2 hover:brightness-110 transition-all font-black text-[10px] uppercase tracking-widest disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#27c93f] text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_15px_rgba(39,201,63,0.3)] disabled:opacity-50 cursor-pointer"
           >
-            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit Changes
+            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>Save</span>
           </button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-6 pl-1">
-          <Layers className="w-5 h-5 text-[#27c93f]" />
-          <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[#27c93f]">Content Layers</h3>
+      {/* NOTIFICATION FEEDBACK */}
+      {saveMessage.text && (
+        <div
+          className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
+            saveMessage.type === 'success'
+              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              : 'bg-red-500/15 border border-red-500/40 text-red-400'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" />
+          <span>{saveMessage.text}</span>
         </div>
+      )}
+
+      {/* PARAGRAPHS LIST */}
+      <div className="space-y-4">
+        {aboutLines.length === 0 && (
+          <div className="p-12 text-center rounded-3xl bg-[#14151e] border border-dashed border-white/15 space-y-3">
+            <p className="text-sm font-bold text-white/60 uppercase tracking-wider">No paragraphs added yet</p>
+            <button
+              type="button"
+              onClick={handleAddLine}
+              className="px-5 py-2.5 rounded-xl bg-[#27c93f] text-black font-bold text-xs uppercase tracking-wider"
+            >
+              + Add First Paragraph
+            </button>
+          </div>
+        )}
 
         <AnimatePresence>
-          {localLines.map((line, idx) => (
-            <motion.div 
+          {aboutLines.map((line, idx) => (
+            <motion.div
               key={idx}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="group relative"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="p-5 sm:p-6 rounded-2xl bg-[#14151e] border border-white/10 space-y-3 group hover:border-white/20 transition-all"
             >
-              <textarea 
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-widest text-[#27c93f]">
+                  Paragraph {idx + 1}
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleMove(idx, -1)}
+                    disabled={idx === 0}
+                    className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
+                    title="Move Up"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleMove(idx, 1)}
+                    disabled={idx === aboutLines.length - 1}
+                    className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
+                    title="Move Down"
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLine(idx)}
+                    className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all ml-2"
+                    title="Delete Paragraph"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <textarea
+                rows={3}
                 value={line}
-                rows={2}
-                placeholder="Enter a paragraph of your journey..."
                 onChange={(e) => handleChange(idx, e.target.value)}
-                className="w-full px-8 py-6 rounded-[28px] bg-white/[0.02] border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none resize-none leading-relaxed"
+                placeholder="Write this paragraph of your professional story..."
+                className="w-full px-4 py-3 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-sm focus:border-[#27c93f] outline-none leading-relaxed resize-y"
               />
-              <button 
-                onClick={() => handleRemoveLine(idx)}
-                className="absolute top-1/2 -translate-y-1/2 -right-12 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 scale-90"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </motion.div>
           ))}
         </AnimatePresence>

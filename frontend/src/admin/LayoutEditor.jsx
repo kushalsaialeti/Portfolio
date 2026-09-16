@@ -1,21 +1,22 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { CmsContext } from '../context/CmsContext';
-import { Save, RefreshCw, LayoutPanelTop, ArrowUp, ArrowDown } from 'lucide-react';
+import { Save, RefreshCw, LayoutPanelTop, ArrowUp, ArrowDown, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CORE_SECTION_IDS = ['home', 'about', 'projects', 'skills', 'contact'];
 const SECTION_DRAFTS = [
   { id: 'home', navLabel: 'Home', title: '', eyebrow: 'Welcome', panelInfo: '', isVisible: true },
-  { id: 'about', navLabel: 'About', title: 'About', eyebrow: 'Who I Am', panelInfo: '', isVisible: true },
-  { id: 'projects', navLabel: 'Projects', title: 'Projects', eyebrow: 'Work', panelInfo: '', isVisible: true },
-  { id: 'skills', navLabel: 'Skills', title: 'Skills', eyebrow: 'Stack', panelInfo: '', isVisible: true },
-  { id: 'contact', navLabel: 'Contact', title: 'Contact', eyebrow: 'Reach Out', panelInfo: '', isVisible: true },
+  { id: 'about', navLabel: 'About', title: 'About', eyebrow: 'Who I Am', panelInfo: 'My background, mindset and product approach.', isVisible: true },
+  { id: 'projects', navLabel: 'Projects', title: 'Projects', eyebrow: 'Work', panelInfo: 'Selected projects with stack and live links.', isVisible: true },
+  { id: 'skills', navLabel: 'Skills', title: 'Skills', eyebrow: 'Stack', panelInfo: 'Frontend, backend and tools I work with.', isVisible: true },
+  { id: 'contact', navLabel: 'Contact', title: 'Contact', eyebrow: 'Reach Out', panelInfo: 'Email, phone and social profiles to connect.', isVisible: true },
 ];
 
 export default function LayoutEditor() {
   const { sections, fetchSection, updateSection } = useContext(CmsContext);
   const [localSections, setLocalSections] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     fetchSection('layout');
@@ -34,11 +35,14 @@ export default function LayoutEditor() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveMessage({ type: '', text: '' });
     try {
       await updateSection('layout', { siteSections: localSections });
-      alert('Global layout configuration committed.');
+      setSaveMessage({ type: 'success', text: 'Section order and visibility saved successfully!' });
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 4000);
     } catch (error) {
-      alert('Commit failed.');
+      console.error(error);
+      setSaveMessage({ type: 'error', text: 'Failed to save layout.' });
     } finally {
       setIsSaving(false);
     }
@@ -54,8 +58,6 @@ export default function LayoutEditor() {
     const updated = [...localSections];
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (targetIdx < 0 || targetIdx >= updated.length) return;
-    
-    // Swap elements
     [updated[idx], updated[targetIdx]] = [updated[targetIdx], updated[idx]];
     setLocalSections(updated);
   };
@@ -67,84 +69,143 @@ export default function LayoutEditor() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-5xl mx-auto pb-24 text-white">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-[var(--text-primary)]">Layout Architect</h2>
-          <p className="text-[var(--text-secondary)] text-sm mt-1 uppercase tracking-widest font-medium">Reorder and toggle visibility of your portfolio sections</p>
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+            <LayoutPanelTop className="w-7 h-7 text-[#27c93f]" />
+            Layout & Section Manager
+          </h2>
+          <p className="text-white/60 text-xs sm:text-sm mt-1">
+            Reorder sections, toggle public visibility, and customize navigation titles and hover cards.
+          </p>
         </div>
-        <div className="flex gap-4">
-          <button 
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-8 py-3 rounded-2xl bg-[var(--accent)] text-black border border-[var(--accent)] flex items-center gap-2 hover:brightness-110 transition-all font-black text-[10px] uppercase tracking-widest disabled:opacity-50"
-          >
-            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Order
-          </button>
-        </div>
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="px-6 py-2.5 rounded-xl bg-[#27c93f] text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_15px_rgba(39,201,63,0.3)] disabled:opacity-50 cursor-pointer"
+        >
+          {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span>Save Layout</span>
+        </button>
       </div>
 
-      <div className="grid gap-6">
+      {/* NOTIFICATION FEEDBACK */}
+      {saveMessage.text && (
+        <div
+          className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
+            saveMessage.type === 'success'
+              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              : 'bg-red-500/15 border border-red-500/40 text-red-400'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" />
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
+
+      {/* SECTIONS LIST */}
+      <div className="space-y-4">
         <AnimatePresence>
           {localSections.map((section, idx) => (
-            <motion.div 
-              key={section.id} 
+            <motion.div
+              key={section.id}
               layout
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="p-8 rounded-[40px] bg-[var(--surface)] border border-[var(--border)] group hover:border-[var(--accent)]/20 transition-all relative overflow-hidden"
+              className={`p-6 rounded-3xl border transition-all ${
+                section.isVisible !== false
+                  ? 'bg-[#14151e] border-white/10 hover:border-white/20'
+                  : 'bg-[#14151e]/40 border-dashed border-white/5 opacity-60'
+              }`}
             >
-              <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start">
-                 {/* POSITIONAL CONTROLS */}
-                 <div className="flex flex-row lg:flex-col gap-2 flex-shrink-0">
-                    <button 
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                {/* ORDER CONTROLS */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[#27c93f]/20 border border-[#27c93f]/40 text-[#27c93f] flex items-center justify-center font-black text-base">
+                    {idx + 1}
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
                       onClick={() => moveSection(idx, 'up')}
                       disabled={idx === 0}
-                      className="p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--accent)] hover:bg-[var(--accent)]/10 disabled:opacity-10 transition-all shadow-xl"
+                      className="p-1 rounded-md bg-white/5 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
+                      title="Move Up"
                     >
-                      <ArrowUp className="w-5 h-5" />
+                      <ArrowUp className="w-3.5 h-3.5" />
                     </button>
-                    <div className="w-12 h-12 rounded-2xl bg-[var(--accent)] text-black flex items-center justify-center font-black text-xl shadow-[0_0_20px_var(--accent)]/30">
-                       {idx + 1}
-                    </div>
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => moveSection(idx, 'down')}
                       disabled={idx === localSections.length - 1}
-                      className="p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--accent)] hover:bg-[var(--accent)]/10 disabled:opacity-10 transition-all shadow-xl"
+                      className="p-1 rounded-md bg-white/5 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
+                      title="Move Down"
                     >
-                      <ArrowDown className="w-5 h-5" />
+                      <ArrowDown className="w-3.5 h-3.5" />
                     </button>
-                 </div>
+                  </div>
+                </div>
 
-                 {/* SECTION INFO */}
-                 <div className="flex-grow flex flex-col md:flex-row gap-8 items-start md:items-center">
-                    <div className="space-y-1">
-                       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-secondary)]/30">Navigation Item</p>
-                       <h3 className="text-2xl font-black uppercase tracking-tight text-[var(--text-primary)]">#{section.id}</h3>
+                {/* FORM FIELDS */}
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/50">Section ID</label>
+                    <div className="px-3.5 py-2.5 rounded-xl bg-[#1c1d27]/60 border border-white/5 text-[#27c93f] font-black text-xs uppercase tracking-wider">
+                      #{section.id}
                     </div>
+                  </div>
 
-                    <div className="flex-grow grid grid-cols-2 md:grid-cols-2 gap-4">
-                       <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-[var(--text-secondary)]/20 tracking-widest pl-1">Nav Label</label>
-                          <input 
-                             value={section.navLabel}
-                             onChange={(e) => handleMetadataChange(idx, 'navLabel', e.target.value)}
-                             className="w-full px-4 py-3 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border)] text-[var(--text-primary)] transition-all focus:border-[var(--accent)]/40 outline-none text-xs font-bold uppercase tracking-widest"
-                          />
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-[var(--text-secondary)]/20 tracking-widest pl-1">Visibility</label>
-                          <button 
-                            onClick={() => toggleVisibility(idx)}
-                            className={`w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border ${section.isVisible !== false ? 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}
-                          >
-                            {section.isVisible !== false ? 'VISIBLE' : 'HIDDEN'}
-                          </button>
-                       </div>
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/50">Nav Label</label>
+                    <input
+                      type="text"
+                      value={section.navLabel || ''}
+                      onChange={(e) => handleMetadataChange(idx, 'navLabel', e.target.value)}
+                      placeholder="e.g. Projects"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs font-bold focus:border-[#27c93f] outline-none"
+                    />
+                  </div>
 
-                 </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/50">Eyebrow Tag</label>
+                    <input
+                      type="text"
+                      value={section.eyebrow || ''}
+                      onChange={(e) => handleMetadataChange(idx, 'eyebrow', e.target.value)}
+                      placeholder="e.g. Work"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs font-bold focus:border-[#27c93f] outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/50">Status</label>
+                    <button
+                      type="button"
+                      onClick={() => toggleVisibility(idx)}
+                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        section.isVisible !== false
+                          ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+                          : 'bg-red-500/15 border border-red-500/40 text-red-400'
+                      }`}
+                    >
+                      {section.isVisible !== false ? (
+                        <>
+                          <Eye className="w-3.5 h-3.5" /> Visible
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3.5 h-3.5" /> Hidden
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}

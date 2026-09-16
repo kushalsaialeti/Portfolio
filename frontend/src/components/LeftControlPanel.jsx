@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Sparkles, FileText, BowArrow, Link2Icon, LinkIcon, BookOpenCheck } from 'lucide-react';
 
 const ControlItem = ({ item, isSelected, isExpanded, onClick, onHoverStart, onHoverEnd }) => {
 
@@ -62,7 +62,7 @@ const ControlItem = ({ item, isSelected, isExpanded, onClick, onHoverStart, onHo
   );
 };
 
-const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
+const LeftControlPanel = ({ activeId, setActiveId, show, items = [], profile = {} }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
 
@@ -78,10 +78,8 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
 
   return (
     <>
-      {/* STATIC GLOBAL HEADER: Always Visible and Constant */}
-      <div
-        className="fixed top-8 left-1/2 -translate-x-1/2 z-[150] hidden lg:block"
-      >
+      {/* STATIC GLOBAL HEADER: Always Visible and Sticky Across Every Section */}
+      <header className="fixed top-8 left-1/2 -translate-x-1/2 z-[150] hidden lg:block pointer-events-auto">
         <div className="flex flex-row items-center gap-3 p-1.5 rounded-full bg-[var(--glass-bg)] border border-[var(--border)] backdrop-blur-3xl shadow-[var(--shadow-lg)]">
           {navItems.map((item) => (
             <ControlItem
@@ -95,6 +93,34 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
             />
           ))}
         </div>
+      </header>
+
+      {/* DESKTOP TOP RIGHT ACTIONS: HIRE ME & RESUME (PARALLEL TO NAVBAR) */}
+      <div className="fixed top-8 right-8 z-[200] hidden lg:flex items-center gap-3">
+        {profile?.resume && (
+          <motion.a
+            href={profile.resume}
+            target="_blank"
+            rel="noreferrer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="group inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)] backdrop-blur-2xl shadow-[var(--shadow-md)] transition-all whitespace-nowrap"
+          >
+            <FileText className="w-3.5 h-3.5 text-[var(--accent)] group-hover:scale-110 transition-transform" />
+            <span>Resume</span>
+          </motion.a>
+        )}
+
+        <motion.button
+          type="button"
+          onClick={(e) => handleSelect('contact', e)}
+          whileHover={{ scale: 1.05, filter: 'brightness(1.1)' }}
+          whileTap={{ scale: 0.95 }}
+          className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)] bg-[var(--accent)] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_25px_rgba(39,201,63,0.35)] transition-all whitespace-nowrap cursor-pointer"
+        >
+          {/* < className="w-3.5 h-3.5 fill-black" /> */}
+          <span>Hire Me</span>
+        </motion.button>
       </div>
 
       {/* MOBILE TRIGGER & DRAWER */}
@@ -128,6 +154,29 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [] }) => {
                   onHoverEnd={() => {}}
                 />
               ))}
+
+              <div className="my-2 h-px w-full bg-[var(--border)]" />
+
+              <button
+                type="button"
+                onClick={(e) => handleSelect('contact', e)}
+                className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[var(--accent)] py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_15px_rgba(39,201,63,0.3)] transition-all cursor-pointer"
+              >
+                {/* <Sparkles className="w-3.5 h-3.5 fill-black" /> */}
+                <span>Hire Me</span>
+              </button>
+
+              {profile?.resume && (
+                <a
+                  href={profile.resume}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] hover:text-[var(--accent)] transition-all text-center"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[var(--accent)]" />
+                  <span>Resume</span>
+                </a>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

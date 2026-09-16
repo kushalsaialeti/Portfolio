@@ -232,6 +232,18 @@ export const CmsProvider = ({ children }) => {
     }
   };
 
+  const saveBaseline = async () => {
+    try {
+      const response = await axios.post(`${API_ROOT}/sections/save-baseline`, {}, {
+        timeout: 10000,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error saving current data as baseline:', error);
+      throw error;
+    }
+  };
+
   const updateContent = async (content) => {
     try {
       const response = await axios.post(`${API_ROOT}/content/update`, content, {
@@ -335,6 +347,7 @@ export const CmsProvider = ({ children }) => {
       updateSection, 
       updateContent,
       seedBaseline,
+      saveBaseline,
       uploadMedia, 
       replaceMedia,
       requestOtp,

@@ -1,12 +1,15 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { CmsContext } from '../context/CmsContext';
-import { Plus, Trash2, Save, Image as ImageIcon, ExternalLink, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Save, RefreshCw, Briefcase, ExternalLink, ArrowUp, ArrowDown, Tag, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ImageUploader from './components/ImageUploader';
 
 export default function ProjectsEditor() {
   const { sections, fetchSection, updateSection, uploadMedia, replaceMedia } = useContext(CmsContext);
-  const [localProjects, setLocalProjects] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+  const [activeTagInputs, setActiveTagInputs] = useState({});
 
   useEffect(() => {
     fetchSection('projects');
@@ -14,170 +17,307 @@ export default function ProjectsEditor() {
 
   useEffect(() => {
     if (sections.projects) {
-      setLocalProjects(sections.projects.projects || []);
+      setProjects(sections.projects.projects || []);
     }
   }, [sections.projects]);
 
   const handleAddProject = () => {
-    setLocalProjects([...localProjects, {
-      name: '',
-      description: '',
-      stack: ['React'],
-      live: '',
-      preview: { url: '', public_id: '' }
-    }]);
+    setProjects([
+      {
+        name: '',
+        description: '',
+        stack: ['React', 'Next.js', 'Tailwind CSS'],
+        live: '',
+        github: '',
+        preview: { url: '', public_id: '' },
+      },
+      ...projects,
+    ]);
   };
 
   const handleRemoveProject = (index) => {
-    const updated = localProjects.filter((_, i) => i !== index);
-    setLocalProjects(updated);
+    if (!window.confirm('Delete this project from your portfolio?')) return;
+    setProjects(projects.filter((_, i) => i !== index));
   };
 
   const handleChange = (index, field, value) => {
-    const updated = [...localProjects];
-    updated[index][field] = value;
-    setLocalProjects(updated);
+    const updated = [...projects];
+    updated[index] = { ...updated[index], [field]: value };
+    setProjects(updated);
   };
 
-  const handleImageChange = async (index, file) => {
-    const oldPublicId = localProjects[index].preview?.public_id;
-    try {
-      let result;
-      if (oldPublicId) {
-        result = await replaceMedia(file, oldPublicId);
-      } else {
-        result = await uploadMedia(file);
-      }
-      handleChange(index, 'preview', { url: result.url, public_id: result.public_id });
-    } catch (error) {
-      alert('Upload failed. Please check network/Cloudinary config.');
+  const handleMove = (index, direction) => {
+    const newIdx = index + direction;
+    if (newIdx < 0 || newIdx >= projects.length) return;
+    const updated = [...projects];
+    const temp = updated[index];
+    updated[index] = updated[newIdx];
+    updated[newIdx] = temp;
+    setProjects(updated);
+  };
+
+  const handleAddTag = (projIndex, e) => {
+    e.preventDefault();
+    const tag = (activeTagInputs[projIndex] || '').trim();
+    if (!tag) return;
+    const currentStack = projects[projIndex].stack || [];
+    if (!currentStack.includes(tag)) {
+      handleChange(projIndex, 'stack', [...currentStack, tag]);
     }
+    setActiveTagInputs((prev) => ({ ...prev, [projIndex]: '' }));
+  };
+
+  const handleRemoveTag = (projIndex, tagToRemove) => {
+    const currentStack = projects[projIndex].stack || [];
+    handleChange(projIndex, 'stack', currentStack.filter((t) => t !== tagToRemove));
+  };
+
+  const handleImageUpload = async (index, file) => {
+    const oldPublicId = projects[index].preview?.public_id;
+    if (oldPublicId) {
+      return await replaceMedia(file, oldPublicId);
+    }
+    return await uploadMedia(file);
   };
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveMessage({ type: '', text: '' });
     try {
-      await updateSection('projects', { projects: localProjects });
-      alert('Portfolio ledger updated successfully.');
+      await updateSection('projects', { projects });
+      setSaveMessage({ type: 'success', text: 'Projects saved and published successfully!' });
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 4000);
     } catch (error) {
-      alert('Save failed.');
+      console.error(error);
+      setSaveMessage({ type: 'error', text: 'Failed to save projects.' });
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-5xl mx-auto pb-24 text-white">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Portfolio Ledger</h2>
-          <p className="text-[#A1A1A6] text-sm mt-1 uppercase tracking-widest font-medium">Manage your engineering projects</p>
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+            <Briefcase className="w-7 h-7 text-[#27c93f]" />
+            Projects Showcase Editor
+          </h2>
+          <p className="text-white/60 text-xs sm:text-sm mt-1">
+            Add, update, or remove portfolio projects, tech stacks, screenshots, and live demo links.
+          </p>
         </div>
-        <div className="flex gap-4">
-          <button 
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
             onClick={handleAddProject}
-            className="px-6 py-3 rounded-2xl bg-white/[0.03] border border-white/10 text-[#27c93f] flex items-center gap-2 hover:bg-[#27c93f]/10 transition-all font-black text-[10px] uppercase tracking-widest"
+            className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/15 text-[#27c93f] font-black text-xs uppercase tracking-wider hover:bg-[#27c93f]/10 transition-all flex items-center gap-2 cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add Asset
+            <Plus className="w-4 h-4" />
+            <span>Add Project</span>
           </button>
-          <button 
+
+          <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="px-8 py-3 rounded-2xl bg-[#27c93f] text-black border border-[#27c93f] flex items-center gap-2 hover:brightness-110 transition-all font-black text-[10px] uppercase tracking-widest disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#27c93f] text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_15px_rgba(39,201,63,0.3)] disabled:opacity-50 cursor-pointer"
           >
-            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit Changes
+            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span>Save</span>
           </button>
         </div>
       </div>
 
-      <div className="grid gap-6">
-        <AnimatePresence>
-          {localProjects.map((project, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 backdrop-blur-3xl group relative"
+      {/* NOTIFICATION FEEDBACK */}
+      {saveMessage.text && (
+        <div
+          className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
+            saveMessage.type === 'success'
+              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              : 'bg-red-500/15 border border-red-500/40 text-red-400'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4" />
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
+
+      {/* PROJECTS LIST */}
+      <div className="space-y-6">
+        {projects.length === 0 && (
+          <div className="p-12 text-center rounded-3xl bg-[#14151e] border border-dashed border-white/15 space-y-3">
+            <p className="text-sm font-bold text-white/60 uppercase tracking-wider">No projects in your showcase</p>
+            <button
+              type="button"
+              onClick={handleAddProject}
+              className="px-5 py-2.5 rounded-xl bg-[#27c93f] text-black font-bold text-xs uppercase tracking-wider"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* MEDIA BLOCK */}
-                <div className="space-y-4">
-                   <div className="relative aspect-video rounded-[24px] bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center group-hover:border-[#27c93f]/20 transition-all">
-                      {project.preview?.url ? (
-                        <img src={project.preview.url} className="w-full h-full object-cover grayscale brightness-75 hover:grayscale-0 transition-all duration-700" alt="Preview" />
-                      ) : (
-                        <div className="text-center space-y-2 opacity-20">
-                          <ImageIcon className="w-10 h-10 mx-auto" />
-                          <p className="text-[10px] uppercase tracking-tighter">No Media Injected</p>
-                        </div>
-                      )}
-                      
-                      <label className="absolute inset-0 cursor-pointer opacity-0 hover:opacity-100 bg-black/60 flex items-center justify-center transition-all">
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          onChange={(e) => handleImageChange(idx, e.target.files[0])}
-                        />
-                        <span className="px-5 py-2 rounded-xl bg-white text-black font-black text-[10px] uppercase">Replace Aspect</span>
-                      </label>
-                   </div>
-                   <div className="flex items-center gap-3 px-2">
-                      <div className="w-2 h-2 rounded-full bg-[#27c93f] animate-pulse" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-[#27c93f]">Cloudinary Sync Active</span>
-                   </div>
+              + Create First Project
+            </button>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {projects.map((project, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="p-6 sm:p-8 rounded-3xl bg-[#14151e] border border-white/10 space-y-6 group hover:border-white/20 transition-all"
+            >
+              {/* CARD TOP BAR */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="w-7 h-7 rounded-lg bg-[#27c93f]/20 text-[#27c93f] font-black text-xs flex items-center justify-center">
+                    {idx + 1}
+                  </span>
+                  <span className="text-sm font-black uppercase tracking-wider text-white">
+                    {project.name || 'Untitled Project'}
+                  </span>
                 </div>
 
-                {/* CONTENT BLOCK */}
-                <div className="lg:col-span-2 space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Project Identifier</label>
-                      <input 
-                        value={project.name}
-                        placeholder="e.g. Civic Pulse"
-                        onChange={(e) => handleChange(idx, 'name', e.target.value)}
-                        className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none"
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleMove(idx, -1)}
+                    disabled={idx === 0}
+                    className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
+                    title="Move Up"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleMove(idx, 1)}
+                    disabled={idx === projects.length - 1}
+                    className="p-1.5 rounded-lg bg-white/5 text-white/60 hover:text-white disabled:opacity-20 transition-colors"
+                    title="Move Down"
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProject(idx)}
+                    className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all ml-2"
+                    title="Delete Project"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* PROJECT FIELDS & IMAGE UPLOADER */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Form Fields (2 Cols) */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-white/70">Project Name</label>
+                    <input
+                      type="text"
+                      value={project.name || ''}
+                      onChange={(e) => handleChange(idx, 'name', e.target.value)}
+                      placeholder="e.g. Navya Sree Embroidery"
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-sm focus:border-[#27c93f] outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-white/70">Description</label>
+                    <textarea
+                      rows={3}
+                      value={project.description || ''}
+                      onChange={(e) => handleChange(idx, 'description', e.target.value)}
+                      placeholder="Briefly describe the product, problem solved, or engineering highlights..."
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs leading-relaxed focus:border-[#27c93f] outline-none resize-y"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase tracking-wider text-white/70">Live Demo URL</label>
+                      <input
+                        type="url"
+                        value={project.live || ''}
+                        onChange={(e) => handleChange(idx, 'live', e.target.value)}
+                        placeholder="https://..."
+                        className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
                       />
                     </div>
-                    <div className="space-y-2">
-                       <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Deployment Node</label>
-                       <input 
-                         value={project.live}
-                         placeholder="https://..."
-                         onChange={(e) => handleChange(idx, 'live', e.target.value)}
-                         className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none"
-                       />
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase tracking-wider text-white/70">GitHub Repo URL</label>
+                      <input
+                        type="url"
+                        value={project.github || ''}
+                        onChange={(e) => handleChange(idx, 'github', e.target.value)}
+                        placeholder="https://github.com/..."
+                        className="w-full px-4 py-2.5 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+                      />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Technical Narrative</label>
-                    <textarea 
-                      value={project.description}
-                      placeholder="Describe the architectural challenge and purpose..."
-                      rows={3}
-                      onChange={(e) => handleChange(idx, 'description', e.target.value)}
-                      className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none resize-none"
-                    />
-                  </div>
+                  {/* Tech Stack Chips */}
+                  <div className="space-y-2 pt-1">
+                    <label className="text-xs font-bold uppercase tracking-wider text-white/70">Tech Stack Tags</label>
+                    <div className="flex flex-wrap gap-2 min-h-[38px] p-2.5 rounded-xl bg-[#1c1d27] border border-white/10">
+                      {(project.stack || []).map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 text-white text-[11px] font-bold uppercase tracking-wider"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTag(idx, tag)}
+                            className="hover:text-red-400"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase text-white/30 tracking-widest pl-1">Stack (Comma Separated)</label>
-                    <input 
-                      value={project.stack.join(', ')}
-                      placeholder="React, AWS, Node.js..."
-                      onChange={(e) => handleChange(idx, 'stack', e.target.value.split(',').map(s => s.trim()))}
-                      className="w-full px-5 py-4 rounded-xl bg-black/30 border border-white/5 text-white placeholder:text-white/10 transition-all focus:border-[#27c93f]/40 outline-none"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={activeTagInputs[idx] || ''}
+                        onChange={(e) => setActiveTagInputs((prev) => ({ ...prev, [idx]: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddTag(idx, e);
+                          }
+                        }}
+                        placeholder="Add tag (e.g. Next.js, Redux, PostgreSQL)..."
+                        className="flex-1 px-4 py-2 rounded-xl bg-[#1c1d27] border border-white/10 text-white text-xs focus:border-[#27c93f] outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => handleAddTag(idx, e)}
+                        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-[#27c93f] hover:text-black font-bold text-xs uppercase tracking-wider transition-colors flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add
+                      </button>
+                    </div>
                   </div>
+                </div>
 
-                  <button 
-                    onClick={() => handleRemoveProject(idx)}
-                    className="absolute top-8 right-8 p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                {/* Project Image Preview (1 Col) */}
+                <div className="space-y-2">
+                  <ImageUploader
+                    label="Project Screenshot"
+                    sublabel="Card preview banner"
+                    value={project.preview}
+                    onChange={(val) => handleChange(idx, 'preview', typeof val === 'object' ? val : { url: val, public_id: '' })}
+                    onUpload={(file) => handleImageUpload(idx, file)}
+                    aspectRatio="video"
+                  />
                 </div>
               </div>
             </motion.div>

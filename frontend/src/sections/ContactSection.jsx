@@ -20,7 +20,7 @@ function ContactCard({ label, value, href, icon: Icon }) {
           <Icon className="h-4 w-4" />
         </div>
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)]/50">{label}</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] opacity-50">{label}</p>
           <p className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors line-clamp-1">{value}</p>
         </div>
       </div>
