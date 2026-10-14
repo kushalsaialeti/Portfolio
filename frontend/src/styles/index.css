@@ -73,9 +73,9 @@
 .admin-surface input,
 .admin-surface textarea,
 .admin-surface select {
-  background-color: #191A23;
+  background-color: #191A23 !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   border-radius: 16px;
   transition: all 0.2s ease;
 }
@@ -147,6 +147,35 @@ html.lenis {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* Keep CMS controls dark even when an editor uses an older white utility. */
+.admin-surface button[class*="bg-white"],
+.admin-surface a[class*="bg-white"] {
+  background-color: #232731 !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.admin-surface button[class*="bg-white"]:hover,
+.admin-surface a[class*="bg-white"]:hover {
+  background-color: #303642 !important;
+  color: #FFFFFF !important;
+}
+
+.cms-success-message {
+  border: 1px solid rgba(74, 222, 128, 0.65) !important;
+  background: #15803D !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 12px 28px rgba(21, 128, 61, 0.24);
+  animation: cms-toast-in 180ms ease-out;
+}
+
+.cms-success-message svg { color: #FFFFFF !important; }
+
+@keyframes cms-toast-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Legacy admin utility classes are intentionally neutralized so every screen

@@ -47,7 +47,7 @@ export default function AdminLogin({ dashboardPath = ADMIN_DASHBOARD_PATH }) {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="admin-surface min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
       {/* AMBIENT GLOW */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#27c93f]/[0.05] blur-[150px] -z-10 rounded-full" />
       

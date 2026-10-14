@@ -8,6 +8,7 @@ This repository contains the Vite/React frontend and Express/MongoDB CMS API.
 npm run install:all
 npm run dev:frontend
 npm run dev:backend
+npm run build:frontend
 npm run build
 npm run lint
 npm test
