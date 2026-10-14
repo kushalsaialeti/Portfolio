@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreHorizontal, Sparkles, FileText, BowArrow, Link2Icon, LinkIcon, BookOpenCheck } from 'lucide-react';
+import { MoreHorizontal, FileText } from 'lucide-react';
+import { trackPublicEvent } from '../features/public/analytics';
 
 const ControlItem = ({ item, isSelected, isExpanded, onClick, onHoverStart, onHoverEnd }) => {
 
@@ -76,6 +77,11 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [], profile = {
     setMobileOpen(false);
   };
 
+  const handleContact = (event) => {
+    trackPublicEvent('contact_click', { section: 'home', target: 'contact' });
+    handleSelect('contact', event);
+  };
+
   return (
     <>
       {/* STATIC GLOBAL HEADER: Always Visible and Sticky Across Every Section */}
@@ -102,6 +108,7 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [], profile = {
             href={profile.resume}
             target="_blank"
             rel="noreferrer"
+            onClick={() => trackPublicEvent('resume_click', { section: 'home', target: 'resume' })}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="group inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] hover:border-[var(--accent)]/40 hover:text-[var(--accent)] backdrop-blur-2xl shadow-[var(--shadow-md)] transition-all whitespace-nowrap"
@@ -113,10 +120,10 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [], profile = {
 
         <motion.button
           type="button"
-          onClick={(e) => handleSelect('contact', e)}
+          onClick={handleContact}
           whileHover={{ scale: 1.05, filter: 'brightness(1.1)' }}
           whileTap={{ scale: 0.95 }}
-          className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)] bg-[var(--accent)] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_25px_rgba(39,201,63,0.35)] transition-all whitespace-nowrap cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-full border border-white bg-white px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_25px_rgba(255,255,255,0.15)] transition-all whitespace-nowrap cursor-pointer"
         >
           {/* < className="w-3.5 h-3.5 fill-black" /> */}
           <span>Hire Me</span>
@@ -159,8 +166,8 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [], profile = {
 
               <button
                 type="button"
-                onClick={(e) => handleSelect('contact', e)}
-                className="flex items-center justify-center gap-2 w-full rounded-2xl bg-[var(--accent)] py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_15px_rgba(39,201,63,0.3)] transition-all cursor-pointer"
+                 onClick={handleContact}
+                 className="flex items-center justify-center gap-2 w-full rounded-2xl bg-white py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_15px_rgba(255,255,255,0.18)] transition-all cursor-pointer"
               >
                 {/* <Sparkles className="w-3.5 h-3.5 fill-black" /> */}
                 <span>Hire Me</span>
@@ -171,6 +178,7 @@ const LeftControlPanel = ({ activeId, setActiveId, show, items = [], profile = {
                   href={profile.resume}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackPublicEvent('resume_click', { section: 'home', target: 'resume' })}
                   className="flex items-center justify-center gap-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)] hover:text-[var(--accent)] transition-all text-center"
                 >
                   <FileText className="w-3.5 h-3.5 text-[var(--accent)]" />

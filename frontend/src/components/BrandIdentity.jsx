@@ -11,7 +11,7 @@ export default function BrandIdentity({ profile, onNavigate }) {
       onClick={() => onNavigate?.('home')}
     >
       <div className="relative h-10 w-10 flex-shrink-0">
-         <div className="absolute inset-0 rounded-full bg-[var(--accent)]/10 blur-md group-hover:bg-[var(--accent)]/30 transition-colors" />
+          <div className="absolute inset-0 rounded-full bg-white/10 blur-md group-hover:bg-white/20 transition-colors" />
          <img 
             src={profile?.portrait?.url || "/images/portrait.png"} 
             alt={profile?.name || "Kushal Sai Aleti"} 

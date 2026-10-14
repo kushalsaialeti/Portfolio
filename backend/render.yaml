@@ -22,20 +22,12 @@ services:
         sync: false # Set via Render Dashboard
       - key: ADMIN_EMAIL
         sync: false # Set via Render Dashboard
-      - key: EMAIL_USER
+      - key: RESEND_API_KEY
         sync: false # Set via Render Dashboard
-      - key: EMAIL_PASS
-        sync: false # Set via Render Dashboard
-      
-      # OPTIMIZATION: Reduced keep-alive interval to 30 minutes (was 5)
-      - key: KEEP_ALIVE_ENABLED
-        value: true
-      - key: KEEP_ALIVE_BACKEND_URL
-        sync: false # Set to the Render URL once deployed
-      - key: KEEP_ALIVE_FRONTEND_URL
+      - key: FRONTEND_ORIGIN
         sync: false # Set to the Vercel URL
       
-      # OPTIMIZATION: Redis caching configuration
+      # Redis caching configuration
       # Use Upstash Redis (free tier): https://upstash.com
       # 1. Create free Redis database on Upstash
       # 2. Get REST API URL from Upstash dashboard

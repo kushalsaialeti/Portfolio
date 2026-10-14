@@ -13,10 +13,28 @@ const siteProfile = {
     "APPS&webistes",
     "CUSTOMSOLUTIONS"
   ],
-  "statusWords": [
-    "WORK",
-    "COLLABORATE"
-  ],
+       "statusWords": [
+         "WORK",
+         "COLLABORATE"
+       ],
+       "ctaLabel": "Discuss a project",
+       "services": [
+         {
+           "title": "Web product builds",
+           "description": "Responsive, CMS-backed web experiences shaped around a clear user journey.",
+           "deliverables": ["Responsive interface", "Frontend integration", "Launch-ready handoff"]
+         },
+         {
+           "title": "Interface systems",
+           "description": "A focused visual system that keeps important screens consistent and easy to use.",
+           "deliverables": ["Page structure", "Reusable UI patterns", "Responsive states"]
+         },
+         {
+           "title": "Product polish",
+           "description": "Practical improvements to flows, clarity, performance, and the final presentation.",
+           "deliverables": ["UX review", "Interaction refinement", "Prioritized next steps"]
+         }
+       ],
   "portrait": {
     "url": "",
     "public_id": ""
@@ -44,7 +62,7 @@ const siteSections = [
     "title": "About",
     "eyebrow": "Who I Am",
     "panelInfo": "My background, mindset and product approach.",
-    "isVisible": false
+         "isVisible": true
   },
   {
     "id": "projects",
@@ -168,6 +186,24 @@ const defaultSections = {
         "WORK",
         "COLLABORATE"
       ],
+      "ctaLabel": "Discuss a project",
+      "services": [
+        {
+          "title": "Web product builds",
+          "description": "Responsive, CMS-backed web experiences shaped around a clear user journey.",
+          "deliverables": ["Responsive interface", "Frontend integration", "Launch-ready handoff"]
+        },
+        {
+          "title": "Interface systems",
+          "description": "A focused visual system that keeps important screens consistent and easy to use.",
+          "deliverables": ["Page structure", "Reusable UI patterns", "Responsive states"]
+        },
+        {
+          "title": "Product polish",
+          "description": "Practical improvements to flows, clarity, performance, and the final presentation.",
+          "deliverables": ["UX review", "Interaction refinement", "Prioritized next steps"]
+        }
+      ],
       "portrait": {
         "url": "",
         "public_id": ""
@@ -197,7 +233,7 @@ const defaultSections = {
         "title": "About",
         "eyebrow": "Who I Am",
         "panelInfo": "My background, mindset and product approach.",
-        "isVisible": false
+        "isVisible": true
       },
       {
         "id": "projects",
@@ -290,8 +326,9 @@ const defaultSections = {
   },
   "contact": {
     "introTitle": "Contact Info",
-    "introText": "Whether you have a question or just want to say hi, I'll try my best to get back to you!",
-    "formTitle": "Send a Message",
+    "introText": "Have a project in mind or a question about the work? Share a little context and I will review it carefully.",
+    "inquiryPrompt": "Helpful context includes your goals, intended scope, timeline, and budget range. It is fine if some details are still taking shape.",
+    "formTitle": "Tell me about the work",
     "submitLabel": "Send Message",
     "successMessage": "Message sent successfully!",
     "errorMessage": "Failed to send message. Please try again.",
@@ -299,7 +336,7 @@ const defaultSections = {
       "name": "Your Name",
       "email": "Your Email",
       "subject": "Brief Subject",
-      "message": "Tell me more about your project..."
+      "message": "What are you hoping to build? Goals, scope, timeline, or budget context are welcome."
     }
   },
   "extra": {

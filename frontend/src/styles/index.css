@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-base: #09090b;
+    --bg-secondary: #111113;
+    --surface: #18181b;
+    --cards: rgba(24, 24, 27, 0.78);
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --accent: #f4f4f5;
+    --accent-soft: rgba(244, 244, 245, 0.1);
+    --accent-ink: #09090b;
+    --border: rgba(244, 244, 245, 0.14);
+    --glass-bg: rgba(9, 9, 11, 0.82);
+    --apple-curve: cubic-bezier(0.22, 1, 0.36, 1);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.22);
+    --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.44);
+  }
+
+  /* DARK THEME (INSPIRATION: APPLE DARK UI) */
+  [data-theme='dark'] {
+    --bg-base: #09090b;
+    --bg-secondary: #111113;
+    --surface: #18181b;
+    --cards: rgba(24, 24, 27, 0.78);
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --accent: #f4f4f5;
+    --accent-soft: rgba(244, 244, 245, 0.1);
+    --accent-ink: #09090b;
+    --border: rgba(244, 244, 245, 0.14);
+    --glass-bg: rgba(9, 9, 11, 0.82);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.22);
+    --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.44);
+  }
+
+  a, button, input, textarea, select {
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+
+  body {
+    @apply bg-[var(--bg-base)] text-[var(--text-primary)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)];
+    overflow-x: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    cursor: default;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+}
+
+.admin-surface {
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #0f1015;
+  color: #FFFFFF;
+}
+
+.admin-surface input,
+.admin-surface textarea,
+.admin-surface select {
+  background-color: #191A23;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.admin-surface input:focus,
+.admin-surface textarea:focus,
+.admin-surface select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(244, 244, 245, 0.12);
+  outline: none;
+}
+
+.admin-surface input::placeholder,
+.admin-surface textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+@layer utilities {
+  .backdrop-blur-20 {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .text-mask-reveal {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  }
+
+  .premium-shadow {
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05);
+  }
+
+  .border-soft {
+    border: 1px solid var(--border);
+  }
+}
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Legacy admin utility classes are intentionally neutralized so every screen
+   shares the same monochrome design system during the migration. */
+[class*="27c93f"], [class*="green-"] { --tw-ring-color: rgba(244, 244, 245, 0.18); }
+[class*="bg-[#27c93f]"], [class*="bg-green-"] { background-color: #f4f4f5 !important; }
+[class*="text-[#27c93f]"], [class*="text-green-"] { color: #f4f4f5 !important; }
+[class*="border-[#27c93f]"], [class*="border-green-"] { border-color: rgba(244, 244, 245, 0.45) !important; }
+[class*="focus:border-[#27c93f]"] { border-color: #f4f4f5 !important; }
+[class*="rgba(39,201,63"] { box-shadow: 0 0 24px rgba(255, 255, 255, 0.12) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
