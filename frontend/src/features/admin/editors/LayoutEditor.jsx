@@ -106,7 +106,7 @@ export default function LayoutEditor() {
         <div
           className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
             saveMessage.type === 'success'
-              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              ? 'cms-success-message'
               : 'bg-red-500/15 border border-red-500/40 text-red-400'
           }`}
         >

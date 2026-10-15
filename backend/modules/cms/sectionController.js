@@ -28,14 +28,13 @@ exports.getContent = async (_req, res) => {
         contact: defaultSections.contact || {},
         blogs: defaultSections.extra?.blogs || [],
         activities: defaultSections.extra?.activities || [],
-        polishing: defaultSections.polishing || {},
         experience: defaultSections.experience || {},
       });
     }
     const cached = await getCache(cacheKey);
     if (cached) return res.set('X-Cache', 'HIT').json(cached);
 
-    const storedSections = await Section.find({}).lean();
+    const storedSections = await Section.find({ slug: { $in: [...ALLOWED_SECTION_SLUGS] } }).lean();
     const content = { ...defaultSections };
     storedSections.forEach((section) => { content[section.slug] = section.content; });
     const response = {
@@ -48,7 +47,6 @@ exports.getContent = async (_req, res) => {
       contact: content.contact || {},
       blogs: content.extra?.blogs || [],
       activities: content.extra?.activities || [],
-      polishing: content.polishing || {},
       experience: content.experience || {},
     };
     await setCache(cacheKey, response, CACHE_TTL_SECTION);
@@ -63,6 +61,9 @@ exports.getContent = async (_req, res) => {
 exports.getSection = async (req, res) => {
   try {
     const { slug } = req.params;
+    if (!ALLOWED_SECTION_SLUGS.has(slug)) {
+      return res.status(404).json({ error: 'Section not found' });
+    }
     
     // OPTIMIZATION: Check cache first
     const cacheKey = `section:${slug}`;
@@ -93,7 +94,10 @@ exports.getSection = async (req, res) => {
 exports.seedBaseline = async (req, res) => {
   try {
     const storedBaseline = await Baseline.findOne({ key: 'default' }).lean();
-    const source = storedBaseline?.sections || defaultSections;
+    const baselineSource = storedBaseline?.sections || defaultSections;
+    const source = Object.fromEntries(
+      Object.entries(baselineSource).filter(([slug]) => ALLOWED_SECTION_SLUGS.has(slug)),
+    );
     const writes = Object.entries(source).map(([slug, content]) => (
       Section.findOneAndUpdate(
         { slug },
@@ -122,7 +126,7 @@ exports.saveBaseline = async (req, res) => {
 
     const snapshot = { ...defaultSections };
     sections.forEach((s) => {
-      snapshot[s.slug] = s.content;
+      if (ALLOWED_SECTION_SLUGS.has(s.slug)) snapshot[s.slug] = s.content;
     });
     await Baseline.findOneAndUpdate(
       { key: 'default' },

@@ -31,7 +31,7 @@ This is a good boundary for the current app. The older `frontend/src/admin`, `fr
 ### CMS
 
 - The dashboard is now organized as **Overview**, **Content**, **Projects**, **Skills**, **Inquiries**, **Analytics**, and **Settings**.
-- Everyday changes are in the short Content editor. Media, ordering, launch mode, and baseline operations are advanced controls.
+- Everyday changes are in the short Content editor. Media, ordering, and baseline operations are advanced controls.
 - Editors are lazy-loaded, so visitors do not pay the admin bundle cost.
 - Navigation warns before abandoning unsaved edits.
 - Baseline restore is confirmed and moved out of the main header.
@@ -66,7 +66,7 @@ This is a good boundary for the current app. The older `frontend/src/admin`, `fr
 1. **Content proof** — Add one verified case study per strong project: problem, role, approach, and measurable outcome where evidence exists.
 2. **Lead response** — Add a clear response expectation in CMS content only when it is operationally true, then add an email acknowledgement after testing deliverability.
 3. **Image budget** — Export portraits/previews as AVIF/WebP, keep the hero image under roughly 150 KB, provide width/height, and avoid shipping unused frame sequences.
-4. **Launch checklist** — Turn off Under Polishing, test the public form, test each project link, check mobile keyboard/focus states, and review the Analytics consent copy.
+4. **Launch checklist** — Test the public form, test each project link, check mobile keyboard/focus states, and review the Analytics consent copy.
 5. **Production analytics operations** — The current rate limiter is process-local. If the backend is deployed on multiple instances, move that small counter to the existing Redis integration.
 6. **Search/share metadata** — Add a specific title, description, Open Graph image, canonical URL, and JSON-LD `Person`/`CreativeWork` data after the final public name and positioning are confirmed.
 
@@ -123,4 +123,4 @@ That keeps the UI minimal, reduces dependency weight, and makes changes predicta
 3. Open **Projects** to add only the work you want a client to remember. Use case-study disclosure for context, not filler.
 4. Open **Skills** and keep categories understandable to a client.
 5. Open **Analytics** after public traffic begins. Choose 7, 30, or 90 days.
-6. Use **Settings** only for layout, media, polishing mode, and confirmed baseline operations.
+6. Use **Settings** only for layout, media, and confirmed baseline operations. The public site is always live.

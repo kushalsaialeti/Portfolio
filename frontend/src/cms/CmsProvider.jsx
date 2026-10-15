@@ -53,7 +53,7 @@ export function CmsProvider({ children }) {
   const fetchSection = useCallback(async (slug, refresh = false) => {
     const cached = cache.current.get(slug);
     // Launch visibility is always checked against the server.
-    if (!refresh && slug !== 'polishing' && cached?.expiry > Date.now()) {
+    if (!refresh && cached?.expiry > Date.now()) {
       setSections((previous) => ({ ...previous, [slug]: cached.data.content }));
       return cached.data;
     }

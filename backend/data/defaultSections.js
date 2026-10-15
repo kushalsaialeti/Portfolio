@@ -386,18 +386,6 @@ const defaultSections = {
         "description": "Build scalable club website as per the customizations and requirements by the language nest body members"
       }
     ]
-  },
-  "polishing": {
-    "isPolishingMode": true,
-    "durationHours": 36,
-    "startedAt": 1726500000000,
-    "title": "Crafting Something Extraordinary",
-    "subtitle": "Portfolio Under Polishing",
-    "message": "I am currently polishing and elevating the portfolio experience with fresh design systems, refined micro-interactions, and new product case studies.",
-    "github": "https://github.com/kushalsaialeti",
-    "linkedin": "https://www.linkedin.com/in/kushalsaialeti/",
-    "instagram": "https://www.instagram.com/_.kushal._.sai._.aleti._/",
-    "email": "kushalsaialeti98@gmail.com"
   }
 };
 

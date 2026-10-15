@@ -200,7 +200,7 @@ export default function HomeEditor() {
         <div
           className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${
             saveMessage.type === 'success'
-              ? 'bg-[#27c93f]/15 border border-[#27c93f]/40 text-[#27c93f]'
+              ? 'cms-success-message'
               : 'bg-red-500/15 border border-red-500/40 text-red-400'
           }`}
         >
@@ -332,7 +332,7 @@ export default function HomeEditor() {
               {localData.profile.statusWords?.map((word) => (
                 <span
                   key={word}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#27c93f]/15 border border-[#27c93f]/30 text-[#27c93f] text-xs font-bold uppercase tracking-wider"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-white text-xs font-bold uppercase tracking-wider"
                 >
                   {word}
                   <button

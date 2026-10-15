@@ -8,7 +8,6 @@ import ProjectsSection from '../features/public/sections/ProjectsSection';
 import ContactSection from '../features/public/sections/ContactSection';
 import LeftControlPanel from '../components/LeftControlPanel';
 import BrandIdentity from '../components/BrandIdentity';
-import UnderPolishing from '../features/public/UnderPolishing';
 import { CmsProvider } from '../cms/CmsProvider';
 import { CmsContext } from '../cms/CmsContext';
 import { ADMIN_LOGIN_PATH, ADMIN_DASHBOARD_PATH } from './routes';
@@ -189,20 +188,13 @@ function AnalyticsConsent() {
 }
 
 function AppRoutes({ isLoaded }) {
-    const { sections, fetchSection, error } = useContext(CmsContext);
-
-    useEffect(() => {
-        fetchSection('polishing');
-    }, [fetchSection]);
-
-    // Polishing mode is active by default unless explicitly set to false by admin in CMS
-    const isPolishingActive = sections.polishing?.isPolishingMode !== false;
+    const { fetchSection, error } = useContext(CmsContext);
 
     return (
         <>
         {error && <div role="alert" className="fixed bottom-4 left-4 right-4 z-[300] rounded-xl bg-red-950 p-4 text-white">
             {error} <button onClick={() => {
-                [...SECTION_SLUGS, 'polishing'].forEach((slug) => fetchSection(slug, true));
+                SECTION_SLUGS.forEach((slug) => fetchSection(slug, true));
             }} className="ml-4 underline">Retry</button>
         </div>}
         <Routes>
@@ -222,21 +214,9 @@ function AppRoutes({ isLoaded }) {
                 } 
             />
 
-            {/* CONDITIONAL PUBLIC ACCESS */}
-            {isPolishingActive ? (
-                <>
-                    {/* ONLY Under Polishing is visible to public */}
-                    <Route path="/" element={<UnderPolishing config={sections.polishing || {}} />} />
-                    {/* All other routes & 404s redirect strictly to polishing page */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </>
-            ) : (
-                <>
-                    {/* FULL LIVE PORTFOLIO ACTIVE WHEN TOGGLED OFF BY ADMIN */}
-                    <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </>
-            )}
+            {/* The public portfolio is permanently live. */}
+            <Route path="/" element={<LandingPage isLoaded={isLoaded} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </>
     );

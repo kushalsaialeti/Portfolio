@@ -18,6 +18,11 @@ export default function AdminLogin({ dashboardPath = ADMIN_DASHBOARD_PATH }) {
     if (isAuthenticated) navigate(dashboardPath);
   }, [isAuthenticated, navigate, dashboardPath]);
 
+  useEffect(() => {
+    document.body.classList.add('admin-surface');
+    return () => document.body.classList.remove('admin-surface');
+  }, []);
+
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     setLoading(true);

@@ -164,6 +164,11 @@ html.lenis {
 }
 
 .cms-success-message {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 120;
+  min-width: min(360px, calc(100vw - 2rem));
   border: 1px solid rgba(74, 222, 128, 0.65) !important;
   background: #15803D !important;
   color: #FFFFFF !important;
@@ -186,6 +191,20 @@ html.lenis {
 [class*="border-[#27c93f]"], [class*="border-green-"] { border-color: rgba(244, 244, 245, 0.45) !important; }
 [class*="focus:border-[#27c93f]"] { border-color: #f4f4f5 !important; }
 [class*="rgba(39,201,63"] { box-shadow: 0 0 24px rgba(255, 255, 255, 0.12) !important; }
+
+/* Older compact editors still use green utility classes for save feedback. */
+.admin-surface [role="status"][class*="bg-[#27c93f]"],
+.admin-surface [class*="text-[#8af59a]"][class*="bg-[#27c93f]"] {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 120;
+  min-width: min(360px, calc(100vw - 2rem));
+  border: 1px solid rgba(74, 222, 128, 0.65) !important;
+  background: #15803D !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 12px 28px rgba(21, 128, 61, 0.24);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
